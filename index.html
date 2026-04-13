@@ -70,7 +70,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .s-ct{font-size:.42rem;opacity:.18;}
 .seat-glow .s-nm{color:var(--gold);opacity:1;text-shadow:0 0 6px var(--gg);}
 .seat-glow{background:rgba(255,209,0,.03);border-radius:6px;}
-.tfelt{flex:1;margin:2px;border-radius:12px;background:radial-gradient(ellipse at center,var(--fl),var(--felt) 60%,var(--fr));border:2px solid rgba(255,255,255,.04);box-shadow:inset 0 2px 16px rgba(0,0,0,.5);position:relative;overflow:hidden;min-width:0;}
+.tfelt{flex:1;margin:2px;border-radius:12px;background:radial-gradient(ellipse at center,var(--fl),var(--felt) 60%,var(--fr));border:2px solid rgba(255,255,255,.04);box-shadow:inset 0 2px 16px rgba(0,0,0,.5);position:relative;overflow:hidden;min-width:0;min-height:0;}
 .cw-b{position:absolute;top:3px;right:5px;font-size:.42rem;opacity:.12;pointer-events:none;}.cw-b::before{content:'↻ ';}
 .cc{position:absolute;inset:0;}
 .te{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.12);font-weight:700;font-size:.7rem;}
@@ -281,46 +281,77 @@ function allWon(G){return G.p.every(p=>p.w>0);}
 function chkMatch(G){for(let i=0;i<4;i++)if(G.p[i].w>=6&&G.p.some(p=>p.w===0))return{won:true,ch:i};return{won:false};}
 function aiMv(G,pi){const h=G.p[pi].h,pl=getPlay(h,G.le,G.re);if(!G.spinner){const db=pl.filter(({t})=>isDbl(t));const pick=db.length?db.sort((a,b)=>(b.t[0]+b.t[1])-(a.t[0]+a.t[1]))[0]:pl.sort((a,b)=>(b.t[0]+b.t[1])-(a.t[0]+a.t[1]))[0];return{a:'play',ti:pick.i,end:'first'};}if(!pl.length)return{a:'knock'};pl.sort((a,b)=>{const ad=isDbl(a.t)?1:0,bd=isDbl(b.t)?1:0;if(bd!==ad)return bd-ad;return(b.t[0]+b.t[1])-(a.t[0]+a.t[1]);});const ch=pl[0],ends=getEnds(ch.t,G.le,G.re);let be=ends[0];if(ends.length>1){const rem=h.filter((_,i)=>i!==ch.i);const lv=ch.t[0]===G.le?ch.t[1]:ch.t[0],rv=ch.t[0]===G.re?ch.t[1]:ch.t[0];be=rem.filter(x=>x[0]===lv||x[1]===lv).length>=rem.filter(x=>x[0]===rv||x[1]===rv).length?'left':'right';}return{a:'play',ti:ch.i,end:be};}
 
-// ═══ CHAIN LAYOUT ═══
-function layoutChain(G,tw,th){if(!G.spinner)return[];const tiles=[];const sd=isDbl(G.spinner);const sw=sd?TS:TL,sh=sd?TL:TS,cx=tw/2,cy=th/2;tiles.push({x:cx-sw/2,y:cy-sh/2,w:sw,h:sh,a:G.spinner.a,b:G.spinner.b,o:sd?'v':'h'});layArm(G.rArm,tiles,cx+sw/2+TG,cy,'right',tw,th,'right');layArm(G.lArm,tiles,cx-sw/2-TG,cy,'left',tw,th,'left');return tiles;}
-function layArm(arm,tiles,sx,sy,dir,tw,th,init){
-  let px=sx,py=sy,d=dir;
+// ═══ CHAIN LAYOUT — VERTICAL (portrait-friendly) ═══
+function layoutChain(G,tw,th){
+  if(!G.spinner)return[];
+  const tiles=[];const sd=isDbl(G.spinner);
+  // Spinner: doubles displayed horizontal (perpendicular), regular displayed vertical
+  const sw=sd?TL:TS, sh=sd?TS:TL;
+  const cx=tw/2,cy=th/2;
+  tiles.push({x:cx-sw/2,y:cy-sh/2,w:sw,h:sh,a:G.spinner.a,b:G.spinner.b,o:sd?'h':'v'});
+  // Right arm goes DOWN from spinner
+  layArm(G.rArm,tiles,cx,cy+sh/2+TG,'down',tw,th);
+  // Left arm goes UP from spinner
+  layArm(G.lArm,tiles,cx,cy-sh/2-TG,'up',tw,th);
+  return tiles;
+}
+function layArm(arm,tiles,colX,startY,dir,tw,th){
+  let px=colX,py=startY,d=dir;
   for(let i=0;i<arm.length;i++){
     const t=arm[i];const db=t.a===t.b;
     let tW,tH,ori;
-    function dims(){if(d==='right'||d==='left'){ori=db?'v':'h';tW=db?TS:TL;tH=db?TL:TS;}else{ori=db?'h':'v';tW=db?TL:TS;tH=db?TS:TL;}}
+    function dims(){
+      if(d==='down'||d==='up'){
+        ori=db?'h':'v'; tW=db?TL:TS; tH=db?TS:TL;
+      }else{
+        ori=db?'v':'h'; tW=db?TS:TL; tH=db?TL:TS;
+      }
+    }
     dims();
+    // Check fit
     let fits=true;
+    if(d==='down'&&py+tH>th-TM)fits=false;
+    if(d==='up'&&py-tH<TM)fits=false;
     if(d==='right'&&px+tW>tw-TM)fits=false;
     if(d==='left'&&px-tW<TM)fits=false;
-    if(d==='down'&&py+tH>th-TM)fits=false;
     if(!fits){
+      // CORNER: turn tile goes horizontal, then new column in opposite vertical dir
       const wd=d;
-      d='down';dims();
-      // Corner tile: placed vertically BELOW the row, flush against the edge — no overlap
+      // Determine shift direction: right arm shifts right, left arm shifts left
+      const goRight=(wd==='down')||(wd==='right');
+      d=goRight?'right':'left';
+      dims();
       let cx2,cy2;
-      cy2=py+TL/2+TG+2; // below tallest possible tile in the row (doubles)
-      if(wd==='right'){
-        // Align corner tile's right edge with last tile's right edge
-        cx2=px-TG-tW;
-      }else if(wd==='left'){
-        // Align corner tile's left edge with last tile's left edge
-        cx2=px+TG;
-      }else{cx2=px-tW/2;}
+      if(wd==='down'){
+        cx2=px+TS/2+TG; cy2=py-tH/2;
+      }else if(wd==='up'){
+        cx2=px-TS/2-TG-tW; cy2=py-tH/2;
+      }else if(wd==='right'){
+        cx2=px; cy2=py+TS/2+TG;
+      }else{
+        cx2=px-tW; cy2=py-TS/2-TG-tH;
+      }
       tiles.push({x:cx2,y:cy2,w:tW,h:tH,a:t.a,b:t.b,o:ori});
-      // Next row centerline: below corner tile
-      py=cy2+tH+TG+TS/2;
-      if(wd==='right'){d='left';px=cx2;} // start left from corner's left edge
-      else if(wd==='left'){d='right';px=cx2+tW;} // start right from corner's right edge
-      else{d=init==='right'?'left':'right';px=d==='left'?tw-TM:TM;}
+      // New column
+      if(wd==='down'){
+        px=cx2+tW+TG+TS/2; py=cy2+tH; d='up';
+      }else if(wd==='up'){
+        px=cx2-TG-TS/2; py=cy2; d='down';
+      }else if(wd==='right'){
+        py=cy2+tH+TG; px=cx2+tW/2; d='down';
+      }else{
+        py=cy2-TG; px=cx2+tW/2; d='up';
+      }
       continue;
     }
+    // Normal placement
     let ra,rb;
-    if(d==='right'||d==='down'){ra=t.a;rb=t.b;}else{ra=t.b;rb=t.a;}
+    if(d==='down'||d==='right'){ra=t.a;rb=t.b;}else{ra=t.b;rb=t.a;}
     let tx,ty;
-    if(d==='right'){tx=px;ty=py-tH/2;px+=tW+TG;}
-    else if(d==='left'){tx=px-tW;ty=py-tH/2;px-=tW+TG;}
-    else if(d==='down'){tx=px-tW/2;ty=py;py+=tH+TG;}
+    if(d==='down'){tx=px-tW/2;ty=py;py+=tH+TG;}
+    else if(d==='up'){tx=px-tW/2;ty=py-tH;py-=tH+TG;}
+    else if(d==='right'){tx=px;ty=py-tH/2;px+=tW+TG;}
+    else{tx=px-tW;ty=py-tH/2;px-=tW+TG;}
     tiles.push({x:tx,y:ty,w:tW,h:tH,a:ra,b:rb,o:ori});
   }
 }
