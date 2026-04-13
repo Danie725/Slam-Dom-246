@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Slam Dom 246</title>
+<title>Island Slam: Dominoes Game</title>
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000B2E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Slam Dom">
+<meta name="apple-mobile-web-app-title" content="Island Slam">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -22,10 +22,11 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .hbg::before{content:'';position:absolute;inset:0;background:repeating-conic-gradient(from 0deg,transparent 0 9deg,rgba(255,209,0,.01) 9deg 10deg);animation:sp 180s linear infinite;pointer-events:none;}
 .hbg>*{position:relative;z-index:1;}
 @keyframes sp{to{transform:rotate(360deg)}}
-.tri{font-size:4rem;filter:drop-shadow(0 0 20px rgba(255,209,0,.2));animation:fl 4s ease-in-out infinite;}
+.tri{font-size:4.5rem;filter:drop-shadow(0 0 24px rgba(255,209,0,.2));animation:fl 4s ease-in-out infinite;}
 @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.logo{font-family:'Righteous',cursive;font-size:clamp(1.8rem,8vw,3.2rem);color:var(--gold);text-shadow:0 2px 14px rgba(255,209,0,.2);letter-spacing:2px;}
-.lsub{font-size:.65rem;color:rgba(255,255,255,.3);letter-spacing:5px;text-transform:uppercase;margin-bottom:32px;font-weight:700;}
+.logo{font-family:'Righteous',cursive;font-size:clamp(1.8rem,8vw,3rem);color:var(--gold);text-shadow:0 2px 16px rgba(255,209,0,.2);letter-spacing:2px;text-align:center;line-height:1.15;}
+.lsub{font-size:.7rem;color:rgba(255,255,255,.35);letter-spacing:5px;text-transform:uppercase;margin-bottom:32px;font-weight:700;}
+.home-footer{margin-top:36px;font-size:.55rem;opacity:.15;text-align:center;line-height:1.6;}
 .bst{display:flex;flex-direction:column;gap:10px;align-items:center;}
 .bt{font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;border:none;border-radius:12px;padding:12px 28px;cursor:pointer;transition:all .15s;min-width:200px;text-align:center;}
 .bt:active{transform:scale(.95);}
@@ -133,14 +134,14 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 <!-- HOME -->
 <div class="pnl hbg on" id="p-home">
   <div class="tri">🔱</div>
-  <div class="logo">SLAM DOM 246</div>
-  <div class="lsub">Caribbean Cut-Throat Dominoes</div>
+  <div class="logo">ISLAND SLAM</div>
+  <div class="lsub">Dominoes Game</div>
   <div class="bst">
     <button class="bt bg" data-go="p-ai">Play vs AI</button>
     <button class="bt bo" data-go="p-online">Play with Friends</button>
-    <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.8rem;opacity:.7;">📊 Leaderboard</button>
+    <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div style="margin-top:36px;font-size:.55rem;opacity:.14;text-align:center;line-height:1.6;">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Clockwise</div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Clockwise</div>
 </div>
 
 <!-- AI SETUP -->
@@ -315,32 +316,36 @@ function layArm(arm,tiles,colX,startY,dir,tw,th){
     if(d==='right'&&px+tW>tw-TM)fits=false;
     if(d==='left'&&px-tW<TM)fits=false;
     if(!fits){
-      // CORNER: turn tile goes horizontal, then new column in opposite vertical dir
       const wd=d;
-      // Determine shift direction: right arm shifts right, left arm shifts left
       const goRight=(wd==='down')||(wd==='right');
       d=goRight?'right':'left';
       dims();
+      // Place corner tile at the TABLE EDGE, not overlapping column tiles
       let cx2,cy2;
+      const G2=1; // tight gap for corners
       if(wd==='down'){
-        cx2=px+TS/2+TG; cy2=py-tH/2;
+        cy2=th-TM-tH;
+        cx2=px+TS/2+G2;
       }else if(wd==='up'){
-        cx2=px-TS/2-TG-tW; cy2=py-tH/2;
+        cy2=TM;
+        cx2=px-TS/2-G2-tW;
       }else if(wd==='right'){
-        cx2=px; cy2=py+TS/2+TG;
+        cx2=tw-TM-tW; cy2=py+TS/2+G2;
       }else{
-        cx2=px-tW; cy2=py-TS/2-TG-tH;
+        cx2=TM; cy2=py-TS/2-G2-tH;
       }
-      tiles.push({x:cx2,y:cy2,w:tW,h:tH,a:t.a,b:t.b,o:ori});
-      // New column
+      let ra,rb;
+      if(d==='right'||d==='down'){ra=t.a;rb=t.b;}else{ra=t.b;rb=t.a;}
+      tiles.push({x:cx2,y:cy2,w:tW,h:tH,a:ra,b:rb,o:ori});
+      // New column starts tight against the corner tile
       if(wd==='down'){
-        px=cx2+tW+TG+TS/2; py=cy2+tH; d='up';
+        px=cx2+tW+G2+TS/2; py=cy2-TG; d='up';
       }else if(wd==='up'){
-        px=cx2-TG-TS/2; py=cy2; d='down';
+        px=cx2-G2-TS/2; py=cy2+tH+TG; d='down';
       }else if(wd==='right'){
-        py=cy2+tH+TG; px=cx2+tW/2; d='down';
+        py=cy2+tH+G2; px=cx2+tW/2; d='down';
       }else{
-        py=cy2-TG; px=cx2+tW/2; d='up';
+        py=cy2-G2; px=cx2+tW/2; d='up';
       }
       continue;
     }
