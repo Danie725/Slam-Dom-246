@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Island Slam: Dominoes Game</title>
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -75,7 +75,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 @keyframes tp{0%,100%{box-shadow:0 0 14px rgba(255,209,0,.35)}50%{box-shadow:0 0 28px rgba(255,209,0,.55)}}
 .tfelt{flex:1;margin:2px;border-radius:12px;background:radial-gradient(ellipse at center,var(--fl),var(--felt) 60%,var(--fr));border:2px solid rgba(255,255,255,.04);box-shadow:inset 0 2px 16px rgba(0,0,0,.5);position:relative;overflow:hidden;min-width:0;min-height:0;}
 .cw-b{position:absolute;top:3px;right:5px;font-size:.42rem;opacity:.12;pointer-events:none;}.cw-b::before{content:'↻ ';}
-.cc{position:absolute;inset:0;}
+.cc{position:absolute;inset:0;transform-origin:0 0;will-change:transform;}
 .te{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.12);font-weight:700;font-size:.7rem;}
 .seat-bot{padding:3px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;}
 .arow{display:flex;gap:6px;justify-content:center;padding:2px 0;}
@@ -602,6 +602,67 @@ $('btn-stats').addEventListener('click',()=>{show('p-stats');loadLeaderboard();}
 // Hook into match end to record stats
 const _showMO=showMO;
 showMO=function(ci){_showMO(ci);recordMatchStats(G);};
+
+// ═══ TABLE ZOOM & PAN (green area only) ═══
+(function(){
+  const felt=$('tfelt'), canvas=$('cc');
+  let scale=1, px=0, py=0, startDist=0, startScale=1, startX=0, startY=0, isPinch=false, isPan=false;
+  const MIN=1, MAX=3;
+
+  function dist(t){return Math.hypot(t[1].clientX-t[0].clientX, t[1].clientY-t[0].clientY);}
+  function mid(t){return{x:(t[0].clientX+t[1].clientX)/2, y:(t[0].clientY+t[1].clientY)/2};}
+
+  felt.addEventListener('touchstart',function(e){
+    if(e.touches.length===2){
+      e.preventDefault();
+      isPinch=true;isPan=false;
+      startDist=dist(e.touches);startScale=scale;
+      const m=mid(e.touches),r=felt.getBoundingClientRect();
+      startX=m.x-r.left;startY=m.y-r.top;
+    }else if(e.touches.length===1&&scale>1){
+      isPan=true;isPinch=false;
+      startX=e.touches[0].clientX-px;
+      startY=e.touches[0].clientY-py;
+    }
+  },{passive:false});
+
+  felt.addEventListener('touchmove',function(e){
+    if(isPinch&&e.touches.length===2){
+      e.preventDefault();
+      const newDist=dist(e.touches);
+      scale=Math.min(MAX,Math.max(MIN,startScale*(newDist/startDist)));
+      // Clamp pan so we don't go out of bounds
+      const fw=felt.clientWidth,fh=felt.clientHeight;
+      const maxPx=0,minPx=fw-(fw*scale);
+      const maxPy=0,minPy=fh-(fh*scale);
+      px=Math.min(maxPx,Math.max(minPx,px));
+      py=Math.min(maxPy,Math.max(minPy,py));
+      canvas.style.transform=`translate(${px}px,${py}px) scale(${scale})`;
+    }else if(isPan&&e.touches.length===1&&scale>1){
+      e.preventDefault();
+      const fw=felt.clientWidth,fh=felt.clientHeight;
+      const maxPx=0,minPx=fw-(fw*scale);
+      const maxPy=0,minPy=fh-(fh*scale);
+      px=Math.min(maxPx,Math.max(minPx,e.touches[0].clientX-startX));
+      py=Math.min(maxPy,Math.max(minPy,e.touches[0].clientY-startY));
+      canvas.style.transform=`translate(${px}px,${py}px) scale(${scale})`;
+    }
+  },{passive:false});
+
+  felt.addEventListener('touchend',function(e){
+    if(e.touches.length<2)isPinch=false;
+    if(e.touches.length<1)isPan=false;
+    // Double-tap to reset zoom
+    if(scale>1&&e.touches.length===0){
+      clearTimeout(felt._dblTap);
+      if(felt._lastTap&&Date.now()-felt._lastTap<300){
+        scale=1;px=0;py=0;
+        canvas.style.transform='';
+        felt._lastTap=0;
+      }else{felt._lastTap=Date.now();}
+    }
+  });
+})();
 
 // ═══ SERVICE WORKER ═══
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
