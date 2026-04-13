@@ -154,7 +154,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Clockwise</div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Clockwise<br><span style="opacity:.5;">v1.5.1</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -606,56 +606,52 @@ showMO=function(ci){_showMO(ci);recordMatchStats(G);};
 // ═══ TABLE ZOOM & PAN (green area only) ═══
 (function(){
   const felt=$('tfelt'), canvas=$('cc');
-  let scale=1, px=0, py=0, startDist=0, startScale=1, startPx=0, startPy=0, isPinch=false, isPan=false;
+  let scale=1, offX=0, offY=0;
+  let pinchStart=0, scaleStart=1;
+  let panStartX=0, panStartY=0, offXStart=0, offYStart=0;
   const MIN=1, MAX=3;
 
-  function dist(t){return Math.hypot(t[1].clientX-t[0].clientX, t[1].clientY-t[0].clientY);}
-
-  function applyTransform(){
-    if(scale<=1){canvas.style.transform='';return;}
-    canvas.style.transform=`translate(${px}px,${py}px) scale(${scale})`;
+  function getDist(t){return Math.hypot(t[1].clientX-t[0].clientX,t[1].clientY-t[0].clientY);}
+  function apply(){
+    if(scale<=1){canvas.style.transform='';offX=0;offY=0;return;}
+    canvas.style.transformOrigin='center center';
+    canvas.style.transform='scale('+scale+') translate('+offX+'px,'+offY+'px)';
   }
-  function clampPan(){
-    const fw=felt.clientWidth,fh=felt.clientHeight;
-    const maxX=fw*(scale-1)/2, maxY=fh*(scale-1)/2;
-    px=Math.min(maxX,Math.max(-maxX,px));
-    py=Math.min(maxY,Math.max(-maxY,py));
+  function clamp(){
+    const mw=felt.clientWidth*(scale-1)/(2*scale);
+    const mh=felt.clientHeight*(scale-1)/(2*scale);
+    offX=Math.max(-mw,Math.min(mw,offX));
+    offY=Math.max(-mh,Math.min(mh,offY));
   }
 
+  let mode='';
   felt.addEventListener('touchstart',function(e){
-    if(e.touches.length===2){
-      e.preventDefault();
-      isPinch=true;isPan=false;
-      startDist=dist(e.touches);startScale=scale;startPx=px;startPy=py;
-    }else if(e.touches.length===1&&scale>1){
-      isPan=true;isPinch=false;
-      startPx=e.touches[0].clientX-px;
-      startPy=e.touches[0].clientY-py;
-    }
+    if(e.touches.length===2){e.preventDefault();mode='pinch';pinchStart=getDist(e.touches);scaleStart=scale;}
+    else if(e.touches.length===1&&scale>1.05){mode='pan';panStartX=e.touches[0].clientX;panStartY=e.touches[0].clientY;offXStart=offX;offYStart=offY;}
+    else{mode='';}
   },{passive:false});
 
   felt.addEventListener('touchmove',function(e){
-    if(isPinch&&e.touches.length===2){
+    if(mode==='pinch'&&e.touches.length===2){
       e.preventDefault();
-      scale=Math.min(MAX,Math.max(MIN,startScale*(dist(e.touches)/startDist)));
-      clampPan();applyTransform();
-    }else if(isPan&&e.touches.length===1&&scale>1){
+      scale=Math.max(MIN,Math.min(MAX,scaleStart*(getDist(e.touches)/pinchStart)));
+      clamp();apply();
+    }else if(mode==='pan'&&e.touches.length===1){
       e.preventDefault();
-      px=e.touches[0].clientX-startPx;
-      py=e.touches[0].clientY-startPy;
-      clampPan();applyTransform();
+      offX=offXStart+(e.touches[0].clientX-panStartX)/scale;
+      offY=offYStart+(e.touches[0].clientY-panStartY)/scale;
+      clamp();apply();
     }
   },{passive:false});
 
   felt.addEventListener('touchend',function(e){
-    if(e.touches.length<2)isPinch=false;
-    if(e.touches.length<1)isPan=false;
-    if(scale<=1.05){scale=1;px=0;py=0;applyTransform();}
-    // Double-tap to reset
     if(e.touches.length===0){
-      if(felt._lastTap&&Date.now()-felt._lastTap<300){
-        scale=1;px=0;py=0;applyTransform();felt._lastTap=0;
-      }else{felt._lastTap=Date.now();}
+      mode='';
+      if(scale<1.05){scale=1;offX=0;offY=0;apply();}
+      // Double tap reset
+      const now=Date.now();
+      if(felt._lt&&now-felt._lt<300){scale=1;offX=0;offY=0;apply();felt._lt=0;}
+      else felt._lt=now;
     }
   });
 })();
