@@ -1,16 +1,11 @@
-const CACHE_NAME = 'slamdom246-v2';
+const CACHE_NAME = 'islandslam-v3';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './bg.jpg',
-  './title.png',
-  './emblem.png',
-  './btn-ai.png',
-  './btn-friends.png',
-  './btn-leader.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/apple-touch-icon.png',
   'https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800;900&display=swap'
 ];
 
