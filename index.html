@@ -612,14 +612,14 @@ showMO=function(ci){_showMO(ci);recordMatchStats(G);};
   function dist(t){return Math.hypot(t[1].clientX-t[0].clientX, t[1].clientY-t[0].clientY);}
 
   function applyTransform(){
-    canvas.style.transform=scale<=1?'':`scale(${scale}) translate(${px}px,${py}px)`;
+    if(scale<=1){canvas.style.transform='';return;}
+    canvas.style.transform=`translate(${px}px,${py}px) scale(${scale})`;
   }
   function clampPan(){
     const fw=felt.clientWidth,fh=felt.clientHeight;
-    const extra=((scale-1)/2);
-    const maxP=extra*fw/scale, maxPy=extra*fh/scale;
-    px=Math.min(maxP,Math.max(-maxP,px));
-    py=Math.min(maxPy,Math.max(-maxPy,py));
+    const maxX=fw*(scale-1)/2, maxY=fh*(scale-1)/2;
+    px=Math.min(maxX,Math.max(-maxX,px));
+    py=Math.min(maxY,Math.max(-maxY,py));
   }
 
   felt.addEventListener('touchstart',function(e){
@@ -629,8 +629,8 @@ showMO=function(ci){_showMO(ci);recordMatchStats(G);};
       startDist=dist(e.touches);startScale=scale;startPx=px;startPy=py;
     }else if(e.touches.length===1&&scale>1){
       isPan=true;isPinch=false;
-      startPx=e.touches[0].clientX/scale-px;
-      startPy=e.touches[0].clientY/scale-py;
+      startPx=e.touches[0].clientX-px;
+      startPy=e.touches[0].clientY-py;
     }
   },{passive:false});
 
@@ -641,8 +641,8 @@ showMO=function(ci){_showMO(ci);recordMatchStats(G);};
       clampPan();applyTransform();
     }else if(isPan&&e.touches.length===1&&scale>1){
       e.preventDefault();
-      px=e.touches[0].clientX/scale-startPx;
-      py=e.touches[0].clientY/scale-startPy;
+      px=e.touches[0].clientX-startPx;
+      py=e.touches[0].clientY-startPy;
       clampPan();applyTransform();
     }
   },{passive:false});
