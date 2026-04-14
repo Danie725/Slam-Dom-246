@@ -59,7 +59,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .sp-cw{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.5rem;opacity:.18;text-align:center;pointer-events:none;line-height:1.3;}.sp-cw::before{content:'↺';display:block;font-size:1.1rem;}
 
 /* ══════════ GAME ══════════ */
-.gwrap{display:none;flex-direction:column;height:100vh;height:100dvh;width:100%;position:absolute;inset:0;background:var(--deep);}
+.gwrap{display:none;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:980px;position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--deep);}
 .gwrap.on{display:flex;}
 .tbar{text-align:center;font-weight:800;font-size:.72rem;padding:3px 6px;color:var(--gold);background:rgba(0,0,0,.12);min-height:20px;flex-shrink:0;}
 .seat-top{display:flex;flex-direction:column;align-items:center;padding:2px 0 1px;flex-shrink:0;}
@@ -73,8 +73,16 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .seat-glow .s-nm{color:var(--gold);opacity:1;text-shadow:0 0 10px var(--gg);}
 .seat-glow{background:rgba(255,209,0,.1);border-radius:8px;border:2px solid var(--gold);box-shadow:0 0 14px rgba(255,209,0,.35);animation:tp 1.4s ease-in-out infinite;}
 @keyframes tp{0%,100%{box-shadow:0 0 14px rgba(255,209,0,.35)}50%{box-shadow:0 0 28px rgba(255,209,0,.55)}}
-.tfelt{flex:1;margin:2px;border-radius:12px;background:radial-gradient(ellipse at center,var(--fl),var(--felt) 60%,var(--fr));border:2px solid rgba(255,255,255,.04);box-shadow:inset 0 2px 16px rgba(0,0,0,.5);position:relative;overflow:hidden;min-width:0;min-height:0;}
-.cw-b{position:absolute;top:3px;right:5px;font-size:.42rem;opacity:.12;pointer-events:none;}.cw-b::before{content:'↺ ';}
+.tfelt{flex:1;margin:4px;border-radius:10px;background:repeating-linear-gradient(92deg,rgba(0,0,0,.05) 0 1px,transparent 1px 4px),repeating-linear-gradient(88deg,rgba(255,255,255,.025) 0 1px,transparent 1px 9px),repeating-linear-gradient(90deg,rgba(0,0,0,.025) 0 2px,transparent 2px 22px),linear-gradient(180deg,#c88a59 0%,#a86538 35%,#8a4a22 70%,#6d3815 100%);border:4px solid #2e1808;box-shadow:inset 0 4px 18px rgba(0,0,0,.55),0 0 0 2px #4e2a15;position:relative;overflow:hidden;min-width:0;min-height:0;}
+.cw-b{position:absolute;top:4px;left:50%;transform:translateX(-50%);font-size:.42rem;opacity:.2;pointer-events:none;color:#fff;}.cw-b::before{content:'↺ ';}
+.corner-box{position:absolute;width:46px;height:46px;background:rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 3px;z-index:20;overflow:hidden;line-height:1.1;box-shadow:0 2px 6px rgba(0,0,0,.4);}
+.corner-box.cb-tl{top:6px;left:6px;}.corner-box.cb-tr{top:6px;right:6px;}
+.corner-box.cb-bl{bottom:6px;left:6px;}.corner-box.cb-br{bottom:6px;right:6px;}
+.corner-box .cbn{font-size:.48rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.corner-box .cbw{font-family:'Righteous',cursive;font-size:.58rem;color:var(--gold);line-height:1;margin-top:2px;}
+.corner-box .cbc{font-size:.38rem;opacity:.6;margin-top:1px;}
+.corner-box.turn-glow{border-color:var(--gold);box-shadow:0 0 14px rgba(255,209,0,.55);animation:tp 1.4s ease-in-out infinite;}
+@media (min-width:640px){.corner-box{width:74px;height:74px;padding:6px 5px;}.corner-box .cbn{font-size:.7rem;}.corner-box .cbw{font-size:.78rem;}.corner-box .cbc{font-size:.5rem;}}
 .cc{position:absolute;inset:0;transform-origin:center center;will-change:transform;}
 .te{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.12);font-weight:700;font-size:.7rem;}
 .seat-bot{padding:3px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;}
@@ -171,7 +179,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.6.9</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.7.0</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -239,7 +247,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
   <div class="seat-top" id="seat-top"><div style="display:flex;align-items:center;gap:4px;"><span class="s-nm" id="st-nm"></span><span class="s-w" id="st-w">0</span></div><div class="s-tiles" id="st-t"></div><div class="s-ct" id="st-ct"></div></div>
   <div class="mid-row">
     <div class="seat-side" id="seat-left"><div class="s-nm" id="sl-nm"></div><div class="s-w" id="sl-w">0</div><div class="s-tiles" id="sl-t"></div><div class="s-ct" id="sl-ct"></div></div>
-    <div class="tfelt" id="tfelt"><div class="cw-b">counter-clockwise</div><span class="te" id="te">Waiting for first tile...</span><div class="cc" id="cc"></div></div>
+    <div class="tfelt" id="tfelt"><div class="cw-b">counter-clockwise</div><div class="corner-box cb-tl" id="cb-tl"><div class="cbn" id="cbn-tl"></div><div class="cbw" id="cbw-tl">0</div><div class="cbc" id="cbc-tl"></div></div><div class="corner-box cb-tr" id="cb-tr"><div class="cbn" id="cbn-tr"></div><div class="cbw" id="cbw-tr">0</div><div class="cbc" id="cbc-tr"></div></div><div class="corner-box cb-bl" id="cb-bl"><div class="cbn" id="cbn-bl"></div><div class="cbw" id="cbw-bl">0</div><div class="cbc" id="cbc-bl"></div></div><div class="corner-box cb-br" id="cb-br"><div class="cbn" id="cbn-br"></div><div class="cbw" id="cbw-br">0</div><div class="cbc" id="cbc-br"></div></div><span class="te" id="te">Waiting for first tile...</span><div class="cc" id="cc"></div></div>
     <div class="seat-side" id="seat-right"><div class="s-nm" id="sr-nm"></div><div class="s-w" id="sr-w">0</div><div class="s-tiles" id="sr-t"></div><div class="s-ct" id="sr-ct"></div></div>
   </div>
   <div class="seat-bot">
@@ -301,7 +309,7 @@ const W=window.innerWidth,MOB=W<500;
 const HAND_W=MOB?36:48,HAND_H=MOB?66:88;
 const BACK_W=MOB?18:24,BACK_H=MOB?30:40;
 const PREV_W=MOB?18:22,PREV_H=MOB?34:40;
-const TL=MOB?34:50,TS=MOB?18:26,TG=2,TM=4;
+const TL=MOB?34:50,TS=MOB?18:26,TG=2,TM=MOB?56:86;
 
 // ═══ FIREBASE ═══
 const DB='https://island-slam-dominoe-game-default-rtdb.firebaseio.com';
@@ -397,78 +405,55 @@ function aiMv(G,pi){
 function layoutChain(G,tw,th){
   if(!G.spinner)return[];
   const tiles=[];const sd=isDbl(G.spinner);
-  // Spinner: doubles displayed horizontal (perpendicular), regular displayed vertical
-  const sw=sd?TL:TS, sh=sd?TS:TL;
+  // Horizontal chain: regular tile horizontal, double perpendicular (vertical)
+  const sw=sd?TS:TL,sh=sd?TL:TS;
   const cx=tw/2,cy=th/2;
-  tiles.push({x:cx-sw/2,y:cy-sh/2,w:sw,h:sh,a:G.spinner.a,b:G.spinner.b,o:sd?'h':'v'});
-  // Right arm goes DOWN from spinner
-  layArm(G.rArm,tiles,cx,cy+sh/2+TG,'down',tw,th);
-  // Left arm goes UP from spinner
-  layArm(G.lArm,tiles,cx,cy-sh/2-TG,'up',tw,th);
+  tiles.push({x:cx-sw/2,y:cy-sh/2,w:sw,h:sh,a:G.spinner.a,b:G.spinner.b,o:sd?'v':'h'});
+  layArm(G.rArm,tiles,cx+sw/2+TG,cy,'right',tw,th);
+  layArm(G.lArm,tiles,cx-sw/2-TG,cy,'left',tw,th);
   return tiles;
 }
-function layArm(arm,tiles,colX,startY,dir,tw,th){
-  let px=colX,py=startY,d=dir;
+function layArm(arm,tiles,startX,startY,initialDir,tw,th){
+  // Spiral sequences: right arm clockwise, left arm counter-clockwise
+  const cwNext={right:'down',down:'left',left:'up',up:'right'};
+  const ccwNext={left:'up',up:'right',right:'down',down:'left'};
+  const nextDir=initialDir==='right'?cwNext:ccwNext;
+  let dir=initialDir,hx=startX,hy=startY;
   for(let i=0;i<arm.length;i++){
     const t=arm[i];const db=t.a===t.b;
-    let tW,tH,ori;
-    function dims(){
-      if(d==='down'||d==='up'){
-        ori=db?'h':'v'; tW=db?TL:TS; tH=db?TS:TL;
-      }else{
-        ori=db?'v':'h'; tW=db?TS:TL; tH=db?TL:TS;
-      }
-    }
-    dims();
-    // Check fit
-    let fits=true;
-    if(d==='down'&&py+tH>th-TM)fits=false;
-    if(d==='up'&&py-tH<TM)fits=false;
-    if(d==='right'&&px+tW>tw-TM)fits=false;
-    if(d==='left'&&px-tW<TM)fits=false;
-    if(!fits){
-      const wd=d;
-      const goRight=(wd==='down')||(wd==='right');
-      d=goRight?'right':'left';
-      dims();
-      // Place corner tile at the TABLE EDGE, not overlapping column tiles
-      let cx2,cy2;
-      const G2=1; // tight gap for corners
-      if(wd==='down'){
-        cy2=th-TM-tH;
-        cx2=px+TS/2+G2;
-      }else if(wd==='up'){
-        cy2=TM;
-        cx2=px-TS/2-G2-tW;
-      }else if(wd==='right'){
-        cx2=tw-TM-tW; cy2=py+TS/2+G2;
-      }else{
-        cx2=TM; cy2=py-TS/2-G2-tH;
+    let placed=false;
+    for(let tries=0;tries<4&&!placed;tries++){
+      const h=(dir==='right'||dir==='left');
+      const tW=h?(db?TS:TL):(db?TL:TS);
+      const tH=h?(db?TL:TS):(db?TS:TL);
+      const ori=h?(db?'v':'h'):(db?'h':'v');
+      let tx,ty;
+      if(dir==='right'){tx=hx;ty=hy-tH/2;}
+      else if(dir==='left'){tx=hx-tW;ty=hy-tH/2;}
+      else if(dir==='down'){tx=hx-tW/2;ty=hy;}
+      else{tx=hx-tW/2;ty=hy-tH;}
+      const fits=tx>=TM&&tx+tW<=tw-TM&&ty>=TM&&ty+tH<=th-TM;
+      if(!fits){
+        const od=dir;dir=nextDir[dir];
+        const nh=(dir==='right'||dir==='left');
+        const ntW=nh?(db?TS:TL):(db?TL:TS);
+        const ntH=nh?(db?TL:TS):(db?TS:TL);
+        if(od==='right'){hx=tw-TM-ntW/2;hy=hy+tH/2+TG;}
+        else if(od==='left'){hx=TM+ntW/2;hy=hy-tH/2-TG;}
+        else if(od==='down'){hx=hx-tW/2-TG;hy=th-TM-ntH/2;}
+        else{hx=hx+tW/2+TG;hy=TM+ntH/2;}
+        continue;
       }
       let ra,rb;
-      if(d==='right'||d==='down'){ra=t.a;rb=t.b;}else{ra=t.b;rb=t.a;}
-      tiles.push({x:cx2,y:cy2,w:tW,h:tH,a:ra,b:rb,o:ori});
-      // New column starts tight against the corner tile
-      if(wd==='down'){
-        px=cx2+tW+G2+TS/2; py=cy2-TG; d='up';
-      }else if(wd==='up'){
-        px=cx2-G2-TS/2; py=cy2+tH+TG; d='down';
-      }else if(wd==='right'){
-        py=cy2+tH+G2; px=cx2+tW/2; d='down';
-      }else{
-        py=cy2-G2; px=cx2+tW/2; d='up';
-      }
-      continue;
+      if(dir==='right'||dir==='down'){ra=t.a;rb=t.b;}else{ra=t.b;rb=t.a;}
+      tiles.push({x:tx,y:ty,w:tW,h:tH,a:ra,b:rb,o:ori});
+      if(dir==='right')hx=tx+tW+TG;
+      else if(dir==='left')hx=tx-TG;
+      else if(dir==='down')hy=ty+tH+TG;
+      else hy=ty-TG;
+      placed=true;
     }
-    // Normal placement
-    let ra,rb;
-    if(d==='down'||d==='right'){ra=t.a;rb=t.b;}else{ra=t.b;rb=t.a;}
-    let tx,ty;
-    if(d==='down'){tx=px-tW/2;ty=py;py+=tH+TG;}
-    else if(d==='up'){tx=px-tW/2;ty=py-tH;py-=tH+TG;}
-    else if(d==='right'){tx=px;ty=py-tH/2;px+=tW+TG;}
-    else{tx=px-tW;ty=py-tH/2;px-=tW+TG;}
-    tiles.push({x:tx,y:ty,w:tW,h:tH,a:ra,b:rb,o:ori});
+    if(!placed)break;
   }
 }
 
@@ -477,8 +462,9 @@ let G=null,viewSeat=0,pendTile=null,gameMode='ai';
 function si(o){return(viewSeat+o)%4;}
 function render(){if(!G)return;const bi=si(0),ri=si(1),ti=si(2),li=si(3);const tb=$('tbar');if(G.go)tb.textContent='';else if(G.turn===bi){if(!G.spinner)tb.textContent=G.fr?'Your turn — pose the double-six!':'Your turn — pose any tile!';else{tb.textContent=getPlay(G.p[bi].h,G.le,G.re).length?'Your turn — pick a tile':'No plays — tap Knock';}}else tb.textContent=G.p[G.turn].nm+"'s turn...";
 function rS(nm,w,t,ct,wr,idx,ori){$(nm).textContent=G.p[idx].nm;$(w).textContent=G.p[idx].w;const el=$(t);el.innerHTML='';const n=G.p[idx].h.length;$(ct).textContent=n+'';for(let i=0;i<n;i++){const d=document.createElement('div');d.innerHTML=bsvg(ori,BACK_W,BACK_H);el.appendChild(d);}$(wr).classList.toggle('seat-glow',G.turn===idx);}
-// Counter-clockwise: right=next, top=across, left=prev
+function rCB(suf,idx){const p=G.p[idx];$('cbn-'+suf).textContent=p.nm;$('cbw-'+suf).textContent=p.w;$('cbc-'+suf).textContent=p.h.length+' tiles';$('cb-'+suf).classList.toggle('turn-glow',G.turn===idx&&!G.go);}
 rS('st-nm','st-w','st-t','st-ct','seat-top',ti,'h');rS('sr-nm','sr-w','sr-t','sr-ct','seat-right',ri,'v');rS('sl-nm','sl-w','sl-t','sl-ct','seat-left',li,'v');
+rCB('bl',bi);rCB('br',ri);rCB('tr',ti);rCB('tl',li);
 const cc=$('cc'),te=$('te'),felt=$('tfelt'),fw=felt.clientWidth,fh=felt.clientHeight;
 if(!G.spinner){cc.innerHTML='';te.style.display='block';}else{te.style.display='none';const laid=layoutChain(G,fw,fh);cc.innerHTML='';laid.forEach(t=>{const d=document.createElement('div');d.style.cssText=`position:absolute;left:${t.x}px;top:${t.y}px;`;d.innerHTML=tsvg(t.a,t.b,t.o,t.o==='v'?t.w:t.h,t.o==='v'?t.h:t.w);cc.appendChild(d);});}
 if(!isDragging){const hr=$('hrow');hr.innerHTML='';const hand=G.p[bi].h;const myT=G.turn===bi&&!G.go;const pIdx=!G.spinner?(G.fr?hand.map((t,i)=>(t[0]===6&&t[1]===6)?i:-1).filter(i=>i>=0):hand.map((_,i)=>i)):getPlay(hand,G.le,G.re).map(p=>p.i);
