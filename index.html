@@ -119,6 +119,9 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .ready-item.done .ri-nm{color:var(--gold);}
 .ready-item .ri-st{font-size:.7rem;opacity:.6;}
 .ready-item.done .ri-st{opacity:1;color:var(--gold);}
+.sous-panel{max-width:360px;}
+.sous-img{width:min(72%,260px);height:auto;margin:16px auto 10px;display:block;border-radius:18px;border:3px solid var(--gold);box-shadow:0 8px 36px rgba(0,0,0,.6),0 0 0 1px rgba(255,215,0,.2);}
+.sous-caption{font-size:1.02rem;color:var(--gold);font-weight:800;margin:6px 0 18px;line-height:1.4;text-shadow:0 2px 12px rgba(255,215,0,.25);padding:0 8px;}
 .ov.minimized .ov-panel{display:none;}
 .ov.minimized{background:rgba(0,6,25,.3);backdrop-filter:none;pointer-events:none;}
 .ov-analyze-btn{position:fixed;bottom:16px;right:16px;z-index:220;background:linear-gradient(140deg,var(--gold),#E6B800);color:var(--navy);border:none;border-radius:14px;padding:10px 18px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);display:none;pointer-events:auto;}
@@ -218,7 +221,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" id="btn-rules">📜 Rules</button>
     <button class="bt bo" id="btn-stats" style="min-width:180px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.1</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.2</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -393,6 +396,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 <div class="ov" id="ov-rnd"><div class="ov-panel"><div class="ovt" id="rnd-t"></div><div class="ovs" id="rnd-s"></div><div class="osc" id="rnd-sc"></div><div class="ready-list" id="rnd-ready"></div><button class="bt bg" id="btn-nxt">Ready Up</button><button class="bt bo bs" id="btn-analyze" style="margin-top:8px;font-size:.72rem;padding:8px 16px;min-width:auto;">🔍 Analyze Board</button></div></div>
 <div class="ov" id="ov-match"><div class="ov-panel"><div class="ovt" id="m-t"></div><div class="ovs" id="m-s"></div><div class="osc" id="m-sc"></div><div class="brow"><button class="bt bg bs" id="btn-re">Play Again</button><button class="bt bo bs" id="btn-mh">End</button></div></div></div>
 <div class="ov" id="ov-aw"><div class="ov-panel"><div class="ovt">⚠️ Full Reset!</div><div class="ovs">All 4 players have a win — game resets.</div><div class="osc" id="aw-sc"></div><div class="brow"><button class="bt bg bs" id="btn-awr">Restart</button><button class="bt bo bs" id="btn-awe">End</button></div></div></div>
+<div class="ov" id="ov-sous"><div class="ov-panel sous-panel"><div class="ovt">🐷 SOUS!</div><img src="sous_pig.png" alt="" class="sous-img"><div class="sous-caption" id="sous-caption"></div><button class="bt bg" id="btn-sous-ok">Continue</button></div></div>
 <button class="ov-analyze-btn" id="btn-resume-rnd">Return to Results</button>
 
 <script>
@@ -837,7 +841,7 @@ function showBlockReveal(){
   });
   setTimeout(()=>ovl('ov-block',true),600);
 }
-function procWin(wi){G.go=true;G.p[wi].w++;G.lw=wi;G.fr=false;toast(G.p[wi].nm+' wins!');render();if(gameMode==='online')syncGame();if(allWon(G)){setTimeout(()=>showAW(),600);return;}const mr=chkMatch(G);if(mr.won){setTimeout(()=>showMO(mr.ch),600);return;}setTimeout(()=>showRO(wi,G.p[wi].nm+' dominoed!'),600);}
+function procWin(wi){G.go=true;G.p[wi].w++;G.lw=wi;G.fr=false;toast(G.p[wi].nm+' wins!');render();if(gameMode==='online')syncGame();if(allWon(G)){setTimeout(()=>showAW(),600);return;}const mr=chkMatch(G);if(mr.won){setTimeout(()=>showMatchEnd(mr.ch),600);return;}setTimeout(()=>showRO(wi,G.p[wi].nm+' dominoed!'),600);}
 function procBlock(){G.go=true;render();if(gameMode==='online')syncGame();const r=resBlock(G);if(r.type==='restart'||r.type==='scratch'){toast('Blocked!');setTimeout(()=>showRO(-1,r.msg),600);return;}if(r.type==='bwin'){G.p[r.wi].w++;G.lw=r.wi;G.fr=false;if(allWon(G)){setTimeout(()=>showAW(),600);return;}const mr=chkMatch(G);if(mr.won){setTimeout(()=>showMO(mr.ch),600);return;}setTimeout(()=>showRO(r.wi,'Blocked! '+G.p[r.wi].nm+' wins with count: '+r.pp),600);return;}setTimeout(()=>showRO(-1,r.msg),600);}
 function scC(el,hl){$(el).innerHTML='';G.p.forEach((p,i)=>{const d=document.createElement('div');d.className='osp'+(i===hl?' w':'');d.innerHTML=`<div class="ospn">${p.nm}</div><div class="ospw">${p.w}</div>`;$(el).appendChild(d);});}
 function showRO(wi,msg){$('rnd-t').textContent=wi>=0?G.p[wi].nm+' Wins!':'Round Over';$('rnd-s').textContent=msg;scC('rnd-sc',wi);$('btn-nxt').textContent=wi<0&&G.fr?'Restart':'Ready Up';G.ready=[false,false,false,false];if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready',null);renderReadyList();ovl('ov-rnd',true);scheduleAIReady();}
@@ -845,6 +849,8 @@ function renderReadyList(){const el=$('rnd-ready');if(!el||!G)return;el.innerHTM
 function scheduleAIReady(){if(!G||!G.ready)return;for(let i=0;i<4;i++){if(!G.p[i].hu&&!G.ready[i]){const idx=i;setTimeout(()=>{if(G&&G.ready&&!G.ready[idx]){G.ready[idx]=true;if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready/'+idx,true);renderReadyList();checkAllReady();}},900+Math.random()*700);}}}
 function checkAllReady(){if(!G||!G.ready)return;if(G.ready.every(r=>r)){if(gameMode==='online'&&!isHost)return;G.ready=null;ovl('ov-rnd',false);document.body.classList.remove('analyzing');if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready',null);startRound(G);begin();if(gameMode==='online')syncGame();}}
 function showMO(ci){$('m-t').textContent='🏆 Champion!';$('m-s').textContent=G.p[ci].nm+' wins with '+G.p[ci].w+' rounds!';$('m-sc').innerHTML='';G.p.forEach((p,i)=>{const d=document.createElement('div');d.className='osp'+(i===ci?' ch':'');d.innerHTML=`<div class="ospn">${p.nm}</div><div class="ospw">${p.w}</div>`;$('m-sc').appendChild(d);});ovl('ov-match',true);}
+let pendingChampion=-1;
+function showMatchEnd(ci){const sous=G.p.map((p,i)=>p.w===0?i:-1).filter(i=>i>=0);if(sous.length===0){showMO(ci);return;}pendingChampion=ci;const names=sous.map(i=>G.p[i].nm);$('sous-caption').textContent=names.join(' & ')+(names.length>1?' hold':' holds')+' a sous';ovl('ov-sous',true);}
 function showAW(){scC('aw-sc',-1);ovl('ov-aw',true);}
 function begin(){render();if(gameMode==='ai'){render();if(!G.p[G.turn].hu)setTimeout(runAI,AI_DELAY[aiDiff]||1200);}}
 
@@ -897,7 +903,7 @@ $('btn-block-ok').addEventListener('click',()=>{
   ovl('ov-block',false);
   const res=resBlock(G);
   if(res.type==='restart'||res.type==='scratch'){showRO(-1,res.msg);}
-  else if(res.type==='bwin'){G.p[res.wi].w++;G.lw=res.wi;G.fr=false;if(allWon(G)){showAW();return;}const mr=chkMatch(G);if(mr.won){showMO(mr.ch);return;}showRO(res.wi,G.p[res.wi].nm+' wins with count: '+res.pp);}
+  else if(res.type==='bwin'){G.p[res.wi].w++;G.lw=res.wi;G.fr=false;if(allWon(G)){showAW();return;}const mr=chkMatch(G);if(mr.won){showMatchEnd(mr.ch);return;}showRO(res.wi,G.p[res.wi].nm+' wins with count: '+res.pp);}
   else{showRO(-1,res.msg);}
 });
 $('so-left').addEventListener('click',()=>{ovl('m-side',false);if(pendTile===null)return;const r=place(G,si(0),pendTile,'left');pendTile=null;after(r);});
@@ -916,6 +922,7 @@ $('btn-analyze').addEventListener('click',()=>{document.body.classList.add('anal
 $('btn-resume-rnd').addEventListener('click',()=>{document.body.classList.remove('analyzing');$('ov-rnd').classList.remove('minimized');});
 $('btn-re').addEventListener('click',()=>{ovl('ov-match',false);startMatch(G);begin();if(gameMode==='online')syncGame();});
 $('btn-mh').addEventListener('click',()=>{ovl('ov-match',false);stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');});
+$('btn-sous-ok').addEventListener('click',()=>{ovl('ov-sous',false);if(pendingChampion>=0){const ci=pendingChampion;pendingChampion=-1;showMO(ci);}});
 $('btn-awr').addEventListener('click',()=>{ovl('ov-aw',false);startMatch(G);begin();if(gameMode==='online')syncGame();});
 $('btn-awe').addEventListener('click',()=>{ovl('ov-aw',false);stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');});
 $('btn-quit').addEventListener('click',()=>{if(confirm('Quit?')){stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');}});
