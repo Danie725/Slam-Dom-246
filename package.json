@@ -1,0 +1,11 @@
+{
+  "name": "slam-dom-246",
+  "version": "1.6.3",
+  "private": true,
+  "scripts": {
+    "start": "serve -s . -l $PORT"
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+}
