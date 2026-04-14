@@ -1,11 +1,14 @@
-const CACHE_NAME = 'islandslam-v3';
+const CACHE_NAME = 'islandslam-v4';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png',
+  './nova_logo.png',
+  './menu_art.png',
+  './sous_pig.png',
   'https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800;900&display=swap'
 ];
 
