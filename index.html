@@ -59,7 +59,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .sp-cw{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.5rem;opacity:.18;text-align:center;pointer-events:none;line-height:1.3;}.sp-cw::before{content:'↺';display:block;font-size:1.1rem;}
 
 /* ══════════ GAME ══════════ */
-.gwrap{display:none;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:min(100%,calc(100vh*0.8));max-width:min(100%,calc(100dvh*0.8));position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--deep);padding-bottom:env(safe-area-inset-bottom);box-sizing:border-box;}
+.gwrap{display:none;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:min(100%,calc(100vh*0.8));max-width:min(100%,calc(100dvh*0.8));position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--deep);padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);box-sizing:border-box;}
 .gwrap.on{display:flex;}
 .tbar{text-align:center;font-weight:800;font-size:.78rem;padding:3px 6px;color:var(--gold);background:rgba(0,0,0,.2);min-height:20px;flex-shrink:0;}
 .mid-row{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;min-width:0;padding:2px 4px;gap:4px;}
@@ -191,7 +191,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.8.0</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.8.1</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -454,12 +454,12 @@ function layoutChain(G,tw,th){
   return tiles;
 }
 function layArm(arm,tiles,startX,startY,initialDir,tw,th){
-  // Spiral sequences: right arm clockwise, left arm counter-clockwise
   const cwNext={right:'down',down:'left',left:'up',up:'right'};
   const ccwNext={left:'up',up:'right',right:'down',down:'left'};
   const isRArm=initialDir==='right'||initialDir==='down';
   const nextDir=isRArm?cwNext:ccwNext;
   let dir=initialDir,hx=startX,hy=startY;
+  let lastMidX=null,lastMidY=null,lastTW=0,lastTH=0;
   for(let i=0;i<arm.length;i++){
     const t=arm[i];const db=t.a===t.b;
     let placed=false;
@@ -475,19 +475,19 @@ function layArm(arm,tiles,startX,startY,initialDir,tw,th){
       else{tx=hx-tW/2;ty=hy-tH;}
       const fits=tx>=TMX&&tx+tW<=tw-TMX&&ty>=TMY&&ty+tH<=th-TMY;
       if(!fits){
+        if(lastMidX===null)break;
         const od=dir;dir=nextDir[dir];
-        const nh=(dir==='right'||dir==='left');
-        const ntW=nh?(db?TS:TL):(db?TL:TS);
-        const ntH=nh?(db?TL:TS):(db?TS:TL);
-        if(od==='right'){hx=tw-TMX-ntW/2;hy=hy+tH/2+TG;}
-        else if(od==='left'){hx=TMX+ntW/2;hy=hy-tH/2-TG;}
-        else if(od==='down'){hx=hx-tW/2-TG;hy=th-TMY-ntH/2;}
-        else{hx=hx+tW/2+TG;hy=TMY+ntH/2;}
+        // Place next tile adjacent to the LAST placed tile (not the wall)
+        if(od==='left'){hx=lastMidX;hy=lastMidY-lastTH/2-TG;}
+        else if(od==='right'){hx=lastMidX;hy=lastMidY+lastTH/2+TG;}
+        else if(od==='down'){hx=lastMidX-lastTW/2-TG;hy=lastMidY;}
+        else{hx=lastMidX+lastTW/2+TG;hy=lastMidY;}
         continue;
       }
       let ra,rb;
       if(dir==='right'||dir==='down'){ra=t.a;rb=t.b;}else{ra=t.b;rb=t.a;}
       tiles.push({x:tx,y:ty,w:tW,h:tH,a:ra,b:rb,o:ori});
+      lastMidX=tx+tW/2;lastMidY=ty+tH/2;lastTW=tW;lastTH=tH;
       if(dir==='right')hx=tx+tW+TG;
       else if(dir==='left')hx=tx-TG;
       else if(dir==='down')hy=ty+tH+TG;
@@ -550,7 +550,7 @@ function rOH(elId,idx,ori){const el=$(elId);el.innerHTML='';const n=G.p[idx].h.l
 function sizeFelt(){const mr=$('tfelt').parentElement;if(!mr)return;const opps=mr.querySelectorAll('.opp-side');let oppW=0;opps.forEach(o=>oppW+=o.offsetWidth);const gap=8+(opps.length*4);const w=Math.max(180,mr.clientWidth-oppW-gap),h=Math.max(180,mr.clientHeight-4);const f=$('tfelt');f.style.width=w+'px';f.style.height=h+'px';}
 window.addEventListener('resize',()=>{if(G)setTimeout(()=>render(),50);});
 function chainBBox(laid){if(!laid.length)return{x:0,y:0,w:1,h:1};let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;for(const t of laid){if(t.x<minX)minX=t.x;if(t.y<minY)minY=t.y;if(t.x+t.w>maxX)maxX=t.x+t.w;if(t.y+t.h>maxY)maxY=t.y+t.h;}return{x:minX,y:minY,w:maxX-minX,h:maxY-minY};}
-function applyChainZoom(cc,laid,fw,fh){const pad=24;const b=chainBBox(laid);const sx=(fw-pad*2)/b.w,sy=(fh-pad*2)/b.h;const s=Math.min(2.6,sx,sy);const bcx=b.x+b.w/2,bcy=b.y+b.h/2;const tx=fw/2-bcx*s,ty=fh/2-bcy*s;cc.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;}// ═══ DRAG TO PLACE SYSTEM ═══
+function applyChainZoom(cc,laid,fw,fh){const pad=48;const b=chainBBox(laid);const sp=laid[0];const scx=sp.x+sp.w/2,scy=sp.y+sp.h/2;const dxMax=Math.max(scx-b.x,(b.x+b.w)-scx,1);const dyMax=Math.max(scy-b.y,(b.y+b.h)-scy,1);const sx=(fw/2-pad)/dxMax,sy=(fh/2-pad)/dyMax;const s=Math.min(1.8,sx,sy);const tx=fw/2-scx*s,ty=fh/2-scy*s;cc.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;}// ═══ DRAG TO PLACE SYSTEM ═══
 let dragIdx=-1,isDragging=false,dragStartY=0,dragStartX=0,dragThreshold=12,draggedEl=null,lastHighlightTs=0,activePointerId=null;
 const dg=$('drag-ghost');
 
