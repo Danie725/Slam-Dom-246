@@ -85,6 +85,8 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .til:hover{transform:translateY(-3px);}
 .til.sel{transform:translateY(-8px);filter:drop-shadow(0 0 10px var(--gold));}
 .til.dis{opacity:.22;cursor:default;}.til.dis:hover{transform:none;}
+.til.dragging{visibility:hidden!important;}
+.ghost{position:absolute;opacity:.25;border:3px dashed var(--gold);border-radius:6px;background:rgba(255,209,0,.1);z-index:10;transition:opacity .15s,border-color .15s;pointer-events:none;}
 
 /* OVERLAYS */
 .ov{display:none;position:fixed;inset:0;background:rgba(0,6,25,.93);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;flex-direction:column;padding:20px;}
@@ -154,7 +156,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.6.2</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.6.3</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -465,19 +467,52 @@ rS('st-nm','st-w','st-t','st-ct','seat-top',ti,'h');rS('sr-nm','sr-w','sr-t','sr
 const cc=$('cc'),te=$('te'),felt=$('tfelt'),fw=felt.clientWidth,fh=felt.clientHeight;
 if(!G.spinner){cc.innerHTML='';te.style.display='block';}else{te.style.display='none';const laid=layoutChain(G,fw,fh);cc.innerHTML='';laid.forEach(t=>{const d=document.createElement('div');d.style.cssText=`position:absolute;left:${t.x}px;top:${t.y}px;`;d.innerHTML=tsvg(t.a,t.b,t.o,t.o==='v'?t.w:t.h,t.o==='v'?t.h:t.w);cc.appendChild(d);});}
 const hr=$('hrow');hr.innerHTML='';const hand=G.p[bi].h;const myT=G.turn===bi&&!G.go;const pIdx=!G.spinner?hand.map((_,i)=>i):getPlay(hand,G.le,G.re).map(p=>p.i);
-hand.forEach((t,i)=>{const d=document.createElement('div');const ok=myT&&pIdx.includes(i);d.className='til'+(ok?'':' dis');d.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);if(ok){d.addEventListener('touchstart',e=>dragStart(e,i),{passive:false});d.addEventListener('click',()=>tileClick(i));}hr.appendChild(d);});$('hlbl').textContent=G.p[bi].nm+"'s Hand";
-// Show ghost outlines if board exists and it's my turn
-if(G.spinner&&myT)renderGhosts();
+hand.forEach((t,i)=>{const d=document.createElement('div');const ok=myT&&pIdx.includes(i);d.className='til'+(ok?'':' dis')+(dragIdx===i&&isDragging?' dragging':'');if(dragIdx===i&&isDragging)d.style.visibility='hidden';d.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);if(ok){d.addEventListener('touchstart',e=>dragStart(e,i),{passive:false});d.addEventListener('click',()=>tileClick(i));}hr.appendChild(d);});$('hlbl').textContent=G.p[bi].nm+"'s Hand";
 }// ═══ DRAG TO PLACE SYSTEM ═══
-let dragIdx=-1,isDragging=false,dragStartY=0,dragThreshold=10;
+let dragIdx=-1,isDragging=false,dragStartY=0,dragStartX=0,dragThreshold=12;
 const dg=$('drag-ghost');
+
+function clearGhosts(){document.querySelectorAll('.ghost').forEach(g=>g.remove());}
+
+function showDragGhosts(tileIdx){
+  clearGhosts();
+  const bi=si(0);const t=G.p[bi].h[tileIdx];if(!t||!G.spinner)return;
+  const ends=getEnds(t,G.le,G.re);
+  const felt=$('tfelt'),fw=felt.clientWidth,fh=felt.clientHeight;
+  const laid=layoutChain(G,fw,fh);if(laid.length===0)return;
+
+  // Find last tile positions for each arm
+  const spinnerT=laid[0];
+  const rArmEnd=G.rArm.length>0?laid[G.rArm.length]:spinnerT;
+  const lArmEnd=G.lArm.length>0?laid[G.rArm.length+G.lArm.length]:spinnerT;
+
+  if(ends.includes('left')){
+    // Ghost above the top of the left arm (going up)
+    const last=lArmEnd;
+    const gW=TS,gH=TL;
+    const gx=last.x+(last.w-gW)/2, gy=last.y-gH-TG;
+    addGhost(felt,'left',gx,gy,gW,gH);
+  }
+  if(ends.includes('right')){
+    // Ghost below the bottom of the right arm (going down)
+    const last=rArmEnd;
+    const gW=TS,gH=TL;
+    const gx=last.x+(last.w-gW)/2, gy=last.y+last.h+TG;
+    addGhost(felt,'right',gx,gy,gW,gH);
+  }
+}
+function addGhost(felt,end,x,y,w,h){
+  const g=document.createElement('div');g.className='ghost';g.dataset.end=end;
+  g.style.cssText=`left:${x}px;top:${y}px;width:${w}px;height:${h}px;`;
+  felt.appendChild(g);
+}
 
 function dragStart(e,i){
   e.preventDefault();
   const bi=si(0);if(G.turn!==bi||G.go)return;
   dragIdx=i;isDragging=false;
   const touch=e.touches[0];
-  dragStartY=touch.clientY;
+  dragStartY=touch.clientY;dragStartX=touch.clientX;
   const t=G.p[bi].h[i];
   dg.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);
   dg.style.left=(touch.clientX-HAND_W/2)+'px';
@@ -488,8 +523,18 @@ function dragStart(e,i){
 function dragMove(e){
   e.preventDefault();
   const touch=e.touches[0];
-  if(!isDragging&&Math.abs(touch.clientY-dragStartY)>dragThreshold){
-    isDragging=true;dg.style.display='block';
+  if(!isDragging&&Math.hypot(touch.clientX-dragStartX,touch.clientY-dragStartY)>dragThreshold){
+    isDragging=true;
+    dg.style.display='block';
+    // Hide tile from hand
+    render();
+    // Show ghosts on the felt
+    if(G.spinner)showDragGhosts(dragIdx);
+    else{
+      // Empty board — ghost at center
+      const felt=$('tfelt');
+      addGhost(felt,'first',felt.clientWidth/2-TS/2,felt.clientHeight/2-TL/2,TS,TL);
+    }
   }
   if(isDragging){
     dg.style.left=(touch.clientX-HAND_W/2)+'px';
@@ -499,7 +544,8 @@ function dragMove(e){
       const r=g.getBoundingClientRect();
       const cx=r.left+r.width/2,cy=r.top+r.height/2;
       const dist=Math.hypot(touch.clientX-cx,touch.clientY-cy);
-      g.style.opacity=dist<60?'0.7':'0.25';
+      g.style.opacity=dist<70?'0.8':'0.25';
+      g.style.borderColor=dist<70?'var(--gold)':'rgba(255,209,0,.4)';
     });
   }
 }
@@ -507,32 +553,39 @@ function dragEnd(e){
   document.removeEventListener('touchmove',dragMove);
   document.removeEventListener('touchend',dragEnd);
   dg.style.display='none';
+  clearGhosts();
   if(!isDragging){dragIdx=-1;return;}
   isDragging=false;
   const bi=si(0);
-  // Find which ghost the finger landed on
   const touch=e.changedTouches[0];
   let hitEnd=null;
-  document.querySelectorAll('.ghost').forEach(g=>{
-    const r=g.getBoundingClientRect();
-    const cx=r.left+r.width/2,cy=r.top+r.height/2;
-    if(Math.hypot(touch.clientX-cx,touch.clientY-cy)<60){
-      hitEnd=g.dataset.end;
-    }
-  });
-  if(hitEnd&&dragIdx>=0){
+  // Check against ghost positions (they were just removed, but we can recalculate)
+  // Actually let's check against the felt area and arm positions
+  const felt=$('tfelt'),fr=felt.getBoundingClientRect();
+  // Are we over the felt?
+  if(touch.clientX>=fr.left&&touch.clientX<=fr.right&&touch.clientY>=fr.top&&touch.clientY<=fr.bottom){
     const t=G.p[bi].h[dragIdx];
+    if(!G.spinner){
+      // Empty board — place as first
+      const r=place(G,bi,dragIdx,'first');dragIdx=-1;after(r);return;
+    }
     const ends=getEnds(t,G.le,G.re);
-    if(ends.includes('left')&&ends.includes('right')){
-      // Both ends valid — show confirm with the end they dropped on
-      pendTile=dragIdx;pendEnd=hitEnd;
-      $('confirm-info').textContent='Connect '+G[hitEnd==='left'?'le':'re']+' ↔ '+(t[0]===G[hitEnd==='left'?'le':'re']?t[0]:t[1])+'?';
+    if(ends.length===1){
+      const r=place(G,bi,dragIdx,ends[0]);dragIdx=-1;after(r);return;
+    }
+    if(ends.length===2){
+      // Dropped on felt with both ends valid — determine which half
+      const feltMidY=fr.top+fr.height/2;
+      const droppedEnd=touch.clientY<feltMidY?'left':'right';
+      pendTile=dragIdx;pendEnd=droppedEnd;
+      const matchVal=G[droppedEnd==='left'?'le':'re'];
+      $('confirm-info').textContent='Connect the '+matchVal+'s?';
       ovl('m-confirm',true);
-    }else{
-      const r=place(G,bi,dragIdx,hitEnd);dragIdx=-1;after(r);
+      dragIdx=-1;return;
     }
   }
-  dragIdx=-1;
+  // Missed — restore hand
+  dragIdx=-1;render();
 }
 
 let pendEnd=null;
@@ -544,78 +597,8 @@ $('btn-confirm-yes').addEventListener('click',()=>{
   pendTile=null;pendEnd=null;after(r);
 });
 $('btn-confirm-no').addEventListener('click',()=>{
-  ovl('m-confirm',false);pendTile=null;pendEnd=null;render();
+  ovl('m-confirm',false);pendTile=null;pendEnd=null;dragIdx=-1;render();
 });
-
-function renderGhosts(){
-  // Remove old ghosts
-  document.querySelectorAll('.ghost').forEach(g=>g.remove());
-  const felt=$('tfelt'),fw=felt.clientWidth,fh=felt.clientHeight;
-  if(!G.spinner)return;
-  const laid=layoutChain(G,fw,fh);
-  if(laid.length===0)return;
-  // Up ghost (left arm end)
-  const upGhost=getGhostPos(laid,'up',fw,fh);
-  if(upGhost){
-    const g=document.createElement('div');g.className='ghost';g.dataset.end='left';
-    g.style.cssText=`left:${upGhost.x}px;top:${upGhost.y}px;width:${upGhost.w}px;height:${upGhost.h}px;`;
-    g.addEventListener('click',()=>{handleGhostClick('left');});
-    $('cc').appendChild(g);
-  }
-  // Down ghost (right arm end)
-  const dnGhost=getGhostPos(laid,'down',fw,fh);
-  if(dnGhost){
-    const g=document.createElement('div');g.className='ghost';g.dataset.end='right';
-    g.style.cssText=`left:${dnGhost.x}px;top:${dnGhost.y}px;width:${dnGhost.w}px;height:${dnGhost.h}px;`;
-    g.addEventListener('click',()=>{handleGhostClick('right');});
-    $('cc').appendChild(g);
-  }
-}
-function getGhostPos(laid,dir,fw,fh){
-  // Generic ghost tile size
-  const gW=TS,gH=TL;
-  if(dir==='up'){
-    // Above the topmost tile in the left arm
-    const armTiles=1+G.lArm.length; // spinner + left arm
-    const topTile=laid[Math.min(armTiles,laid.length-1)];
-    if(!topTile)return{x:fw/2-gW/2,y:fh/2-gH-30,w:gW,h:gH};
-    // Find the actual last left arm tile
-    let lastUp=null;
-    for(let i=laid.length-1;i>=0;i--){
-      // Left arm tiles are indices 1+rArm.length .. 1+rArm.length+lArm.length-1
-      // Actually laid order: [spinner, ...rArm, ...lArm] — no wait
-      // layoutChain: spinner first, then rArm going down, then lArm going up
-      // So lArm tiles start at index 1+rArm.length
-      if(i>=1+G.rArm.length&&i<1+G.rArm.length+G.lArm.length){
-        lastUp=laid[i];break;
-      }
-    }
-    if(!lastUp)lastUp=laid[0]; // spinner
-    return{x:lastUp.x,y:lastUp.y-gH-TG,w:gW,h:gH};
-  }else{
-    // Below the bottommost tile in the right arm
-    let lastDn=null;
-    for(let i=0;i<laid.length;i++){
-      if(i>=1&&i<1+G.rArm.length){lastDn=laid[i];}
-    }
-    if(!lastDn)lastDn=laid[0]; // spinner
-    return{x:lastDn.x,y:lastDn.y+lastDn.h+TG,w:gW,h:gH};
-  }
-}
-function handleGhostClick(end){
-  const bi=si(0);if(G.turn!==bi||G.go)return;
-  // Find which playable tile the user might want — if only one is selected, use it
-  const hand=G.p[bi].h;
-  const playable=getPlay(hand,G.le,G.re).filter(({t})=>{
-    const ends=getEnds(t,G.le,G.re);return ends.includes(end);
-  });
-  if(playable.length===0)return;
-  if(playable.length===1){
-    const r=place(G,bi,playable[0].i,end);after(r);return;
-  }
-  // Multiple tiles can play on this end — let user tap a tile first
-  toast('Select a tile first, then drag it here');
-}
 
 function tileClick(i){
   const bi=si(0);if(G.turn!==bi||G.go)return;
