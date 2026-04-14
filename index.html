@@ -467,7 +467,7 @@ rS('st-nm','st-w','st-t','st-ct','seat-top',ti,'h');rS('sr-nm','sr-w','sr-t','sr
 const cc=$('cc'),te=$('te'),felt=$('tfelt'),fw=felt.clientWidth,fh=felt.clientHeight;
 if(!G.spinner){cc.innerHTML='';te.style.display='block';}else{te.style.display='none';const laid=layoutChain(G,fw,fh);cc.innerHTML='';laid.forEach(t=>{const d=document.createElement('div');d.style.cssText=`position:absolute;left:${t.x}px;top:${t.y}px;`;d.innerHTML=tsvg(t.a,t.b,t.o,t.o==='v'?t.w:t.h,t.o==='v'?t.h:t.w);cc.appendChild(d);});}
 const hr=$('hrow');hr.innerHTML='';const hand=G.p[bi].h;const myT=G.turn===bi&&!G.go;const pIdx=!G.spinner?hand.map((_,i)=>i):getPlay(hand,G.le,G.re).map(p=>p.i);
-hand.forEach((t,i)=>{const d=document.createElement('div');const ok=myT&&pIdx.includes(i);d.className='til'+(ok?'':' dis')+(dragIdx===i&&isDragging?' dragging':'');if(dragIdx===i&&isDragging)d.style.visibility='hidden';d.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);if(ok){d.addEventListener('touchstart',e=>dragStart(e,i),{passive:false});d.addEventListener('click',()=>tileClick(i));}hr.appendChild(d);});$('hlbl').textContent=G.p[bi].nm+"'s Hand";
+hand.forEach((t,i)=>{const d=document.createElement('div');const ok=myT&&pIdx.includes(i);d.className='til'+(ok?'':' dis')+(dragIdx===i&&isDragging?' dragging':'');if(dragIdx===i&&isDragging)d.style.visibility='hidden';d.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);if(ok){d.addEventListener('touchstart',e=>dragStart(e,i),{passive:false});d.addEventListener('mousedown',e=>mouseDragStart(e,i));}hr.appendChild(d);});$('hlbl').textContent=G.p[bi].nm+"'s Hand";
 }// ═══ DRAG TO PLACE SYSTEM ═══
 let dragIdx=-1,isDragging=false,dragStartY=0,dragStartX=0,dragThreshold=12;
 const dg=$('drag-ghost');
@@ -553,28 +553,67 @@ function dragEnd(e){
   e.preventDefault&&e.cancelable&&e.preventDefault();
   document.removeEventListener('touchmove',dragMove);
   document.removeEventListener('touchend',dragEnd);
+  finishDrag(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
+}
+function mouseDragStart(e,i){
+  e.preventDefault();
+  const bi=si(0);if(G.turn!==bi||G.go)return;
+  dragIdx=i;isDragging=false;
+  dragStartY=e.clientY;dragStartX=e.clientX;
+  const t=G.p[bi].h[i];
+  dg.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);
+  dg.style.left=(e.clientX-HAND_W/2)+'px';
+  dg.style.top=(e.clientY-HAND_H/2)+'px';
+  document.addEventListener('mousemove',mouseDragMove);
+  document.addEventListener('mouseup',mouseDragEnd);
+}
+function mouseDragMove(e){
+  if(!isDragging&&Math.hypot(e.clientX-dragStartX,e.clientY-dragStartY)>dragThreshold){
+    isDragging=true;
+    dg.style.display='block';
+    render();
+    if(G.spinner)showDragGhosts(dragIdx);
+    else{
+      const felt=$('tfelt');
+      addGhost(felt,'first',felt.clientWidth/2-TS/2,felt.clientHeight/2-TL/2,TS,TL);
+    }
+  }
+  if(isDragging){
+    dg.style.left=(e.clientX-HAND_W/2)+'px';
+    dg.style.top=(e.clientY-HAND_H/2)+'px';
+    document.querySelectorAll('.ghost').forEach(g=>{
+      const r=g.getBoundingClientRect();
+      const cx=r.left+r.width/2,cy=r.top+r.height/2;
+      const dist=Math.hypot(e.clientX-cx,e.clientY-cy);
+      g.style.opacity=dist<70?'0.8':'0.25';
+      g.style.borderColor=dist<70?'var(--gold)':'rgba(255,209,0,.4)';
+    });
+  }
+}
+function mouseDragEnd(e){
+  document.removeEventListener('mousemove',mouseDragMove);
+  document.removeEventListener('mouseup',mouseDragEnd);
+  finishDrag(e.clientX,e.clientY);
+}
+function finishDrag(px,py){
   dg.style.display='none';
   if(!isDragging){clearGhosts();dragIdx=-1;return;}
   isDragging=false;
   const bi=si(0);
-  const touch=e.changedTouches[0];
-  // Pick the ghost closest to the release point (within snap radius)
   const ghosts=document.querySelectorAll('.ghost');
   let best=null,bestDist=Infinity;
   ghosts.forEach(g=>{
     const r=g.getBoundingClientRect();
     const cx=r.left+r.width/2,cy=r.top+r.height/2;
-    const d=Math.hypot(touch.clientX-cx,touch.clientY-cy);
+    const d=Math.hypot(px-cx,py-cy);
     if(d<bestDist){bestDist=d;best=g;}
   });
   clearGhosts();
   const idx=dragIdx;dragIdx=-1;
   if(best&&bestDist<140){
-    const end=best.dataset.end;
-    const r=place(G,bi,idx,end);
+    const r=place(G,bi,idx,best.dataset.end);
     after(r);return;
   }
-  // Missed — restore hand
   render();
 }
 
