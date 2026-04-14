@@ -221,7 +221,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" id="btn-rules">📜 Rules</button>
     <button class="bt bo" id="btn-stats" style="min-width:180px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.2</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.3</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -847,12 +847,13 @@ function scC(el,hl){$(el).innerHTML='';G.p.forEach((p,i)=>{const d=document.crea
 function showRO(wi,msg){$('rnd-t').textContent=wi>=0?G.p[wi].nm+' Wins!':'Round Over';$('rnd-s').textContent=msg;scC('rnd-sc',wi);$('btn-nxt').textContent=wi<0&&G.fr?'Restart':'Ready Up';G.ready=[false,false,false,false];if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready',null);renderReadyList();ovl('ov-rnd',true);scheduleAIReady();}
 function renderReadyList(){const el=$('rnd-ready');if(!el||!G)return;el.innerHTML='';const r=G.ready||[false,false,false,false];for(let i=0;i<4;i++){const div=document.createElement('div');div.className='ready-item'+(r[i]?' done':'');div.innerHTML='<span class="ri-nm">'+G.p[i].nm+'</span><span class="ri-st">'+(r[i]?'✓ Ready':'⏳ Waiting')+'</span>';el.appendChild(div);}}
 function scheduleAIReady(){if(!G||!G.ready)return;for(let i=0;i<4;i++){if(!G.p[i].hu&&!G.ready[i]){const idx=i;setTimeout(()=>{if(G&&G.ready&&!G.ready[idx]){G.ready[idx]=true;if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready/'+idx,true);renderReadyList();checkAllReady();}},900+Math.random()*700);}}}
-function checkAllReady(){if(!G||!G.ready)return;if(G.ready.every(r=>r)){if(gameMode==='online'&&!isHost)return;G.ready=null;ovl('ov-rnd',false);document.body.classList.remove('analyzing');if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready',null);startRound(G);begin();if(gameMode==='online')syncGame();}}
+function checkAllReady(){if(!G||!G.ready)return;if(G.ready.every(r=>r)){if(gameMode==='online'&&!isHost)return;G.ready=null;ovl('ov-rnd',false);resetBoardView();if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready',null);startRound(G);begin();if(gameMode==='online')syncGame();}}
+function resetBoardView(){document.body.classList.remove('analyzing');$('ov-rnd').classList.remove('minimized');$('ov-match').classList.remove('minimized');$('ov-aw').classList.remove('minimized');const cc=$('cc');if(cc)cc.style.transform='';}
 function showMO(ci){$('m-t').textContent='🏆 Champion!';$('m-s').textContent=G.p[ci].nm+' wins with '+G.p[ci].w+' rounds!';$('m-sc').innerHTML='';G.p.forEach((p,i)=>{const d=document.createElement('div');d.className='osp'+(i===ci?' ch':'');d.innerHTML=`<div class="ospn">${p.nm}</div><div class="ospw">${p.w}</div>`;$('m-sc').appendChild(d);});ovl('ov-match',true);}
 let pendingChampion=-1;
 function showMatchEnd(ci){const sous=G.p.map((p,i)=>p.w===0?i:-1).filter(i=>i>=0);if(sous.length===0){showMO(ci);return;}pendingChampion=ci;const names=sous.map(i=>G.p[i].nm);$('sous-caption').textContent=names.join(' & ')+(names.length>1?' hold':' holds')+' a sous';ovl('ov-sous',true);}
 function showAW(){scC('aw-sc',-1);ovl('ov-aw',true);}
-function begin(){render();if(gameMode==='ai'){render();if(!G.p[G.turn].hu)setTimeout(runAI,AI_DELAY[aiDiff]||1200);}}
+function begin(){resetBoardView();render();if(gameMode==='ai'){render();if(!G.p[G.turn].hu)setTimeout(runAI,AI_DELAY[aiDiff]||1200);}}
 
 // ═══ ONLINE ═══
 let roomCode='',myName='',mySeat=-1,isHost=false,pollId=null;
@@ -920,12 +921,12 @@ $('btn-nxt').addEventListener('click',()=>{
 });
 $('btn-analyze').addEventListener('click',()=>{document.body.classList.add('analyzing');$('ov-rnd').classList.add('minimized');});
 $('btn-resume-rnd').addEventListener('click',()=>{document.body.classList.remove('analyzing');$('ov-rnd').classList.remove('minimized');});
-$('btn-re').addEventListener('click',()=>{ovl('ov-match',false);startMatch(G);begin();if(gameMode==='online')syncGame();});
-$('btn-mh').addEventListener('click',()=>{ovl('ov-match',false);stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');});
+$('btn-re').addEventListener('click',()=>{ovl('ov-match',false);resetBoardView();startMatch(G);begin();if(gameMode==='online')syncGame();});
+$('btn-mh').addEventListener('click',()=>{ovl('ov-match',false);resetBoardView();stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');});
 $('btn-sous-ok').addEventListener('click',()=>{ovl('ov-sous',false);if(pendingChampion>=0){const ci=pendingChampion;pendingChampion=-1;showMO(ci);}});
-$('btn-awr').addEventListener('click',()=>{ovl('ov-aw',false);startMatch(G);begin();if(gameMode==='online')syncGame();});
-$('btn-awe').addEventListener('click',()=>{ovl('ov-aw',false);stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');});
-$('btn-quit').addEventListener('click',()=>{if(confirm('Quit?')){stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');}});
+$('btn-awr').addEventListener('click',()=>{ovl('ov-aw',false);resetBoardView();startMatch(G);begin();if(gameMode==='online')syncGame();});
+$('btn-awe').addEventListener('click',()=>{ovl('ov-aw',false);resetBoardView();stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');});
+$('btn-quit').addEventListener('click',()=>{if(confirm('Quit?')){resetBoardView();stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');}});
 
 // ═══ STATS / LEADERBOARD ═══
 async function recordMatchStats(G){
@@ -962,6 +963,12 @@ $('btn-rules').addEventListener('click',()=>ovl('m-rules',true));
 $('btn-rules-ok').addEventListener('click',()=>ovl('m-rules',false));
 // Splash screen fade-out
 setTimeout(()=>{const s=$('splash');if(s){s.classList.add('fade-out');setTimeout(()=>s.remove(),650);}},2500);
+// Block iOS Safari pinch-zoom (touch-action:none doesn't always stop gesturestart)
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('gesturechange',e=>e.preventDefault());
+document.addEventListener('gestureend',e=>e.preventDefault());
+document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+document.addEventListener('dblclick',e=>e.preventDefault());
 
 // Hook into match end to record stats
 const _showMO=showMO;
