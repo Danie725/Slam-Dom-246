@@ -77,9 +77,26 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .oh-h{flex-direction:row;gap:3px;justify-content:center;flex-wrap:nowrap;}
 .oh-col{flex-direction:column;gap:3px;align-items:center;justify-content:center;}
 .oh>div{flex-shrink:0;}
-.player-row{padding:3px 6px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;}
-.hlbl{font-size:.46rem;}
+.player-row{padding:2px 6px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;}
+.hlbl{display:none;}
 .arow{gap:6px;}
+.player-row .arow .bt{padding:6px 16px;font-size:.78rem;min-width:auto;}
+.player-row .nb{padding:2px 10px;min-width:60px;}
+.player-row .nbn{font-size:.66rem;}
+.player-row .nbw{font-size:.76rem;}
+.player-row .nbc{font-size:.42rem;}
+.opp-top .nb{padding:2px 10px;}
+.opp-top .nbn{font-size:.6rem;}
+.opp-top .nbw{font-size:.72rem;}
+.opp-top .nbc{font-size:.4rem;}
+.hrow{padding:0;}
+@media (max-height:500px){
+  .tbar{padding:1px 6px;min-height:14px;font-size:.68rem;}
+  .opp-top{padding:0;gap:1px;zoom:.72;}
+  .opp-side{width:48px!important;zoom:.82;}
+  .player-row{padding:0 6px 2px;gap:0;zoom:.82;}
+  .player-row .arow{gap:4px;}
+}
 @keyframes tp{0%,100%{box-shadow:0 0 14px rgba(255,209,0,.35)}50%{box-shadow:0 0 28px rgba(255,209,0,.55)}}
 .tfelt{flex:0 0 auto;border-radius:10px;background:repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0 1px,transparent 1px 5px),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 11px),repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0 2px,transparent 2px 24px),linear-gradient(90deg,#c88a59 0%,#a86538 35%,#8a4a22 70%,#6d3815 100%);border:4px solid #2e1808;box-shadow:inset 0 4px 18px rgba(0,0,0,.55),0 0 0 2px #4e2a15;position:relative;overflow:hidden;}
 .cc{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0;will-change:transform;}
@@ -178,7 +195,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.7.3</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.7.4</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -318,8 +335,8 @@ document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=
 
 // ═══ RESPONSIVE TILE SIZES ═══
 const W=window.innerWidth,MOB=W<500;
-const HAND_W=MOB?26:44,HAND_H=MOB?48:80;
-const OPP_W=MOB?18:32,OPP_H=MOB?32:58;
+const HAND_W=MOB?26:42,HAND_H=MOB?46:74;
+const OPP_W=MOB?16:26,OPP_H=MOB?28:46;
 const BACK_W=MOB?18:24,BACK_H=MOB?30:40;
 const PREV_W=MOB?18:22,PREV_H=MOB?34:40;
 const TL=MOB?36:52,TS=MOB?18:26,TG=1;
@@ -520,7 +537,7 @@ function render(){
 }
 function rNB(suf,idx){const p=G.p[idx];$('nbn-'+suf).textContent=p.nm;$('nbw-'+suf).textContent=p.w;$('nbc-'+suf).textContent=p.h.length+' tiles';$('nb-'+suf).classList.toggle('turn-glow',G.turn===idx&&!G.go);}
 function rOH(elId,idx,ori){const el=$(elId);el.innerHTML='';const n=G.p[idx].h.length;for(let i=0;i<n;i++){const d=document.createElement('div');d.innerHTML=bsvg(ori,OPP_W,OPP_H);el.appendChild(d);}}
-function sizeFelt(){const mr=$('tfelt').parentElement;if(!mr)return;const opps=mr.querySelectorAll('.opp-side');let oppW=0;opps.forEach(o=>oppW+=o.offsetWidth);const gap=8+(opps.length*4);const cw=mr.clientWidth-oppW-gap,ch=mr.clientHeight-4;const s=Math.max(180,Math.min(cw,ch));const f=$('tfelt');f.style.width=s+'px';f.style.height=s+'px';}
+function sizeFelt(){const mr=$('tfelt').parentElement;if(!mr)return;const opps=mr.querySelectorAll('.opp-side');let oppW=0;opps.forEach(o=>oppW+=o.offsetWidth);const gap=8+(opps.length*4);const w=Math.max(180,mr.clientWidth-oppW-gap),h=Math.max(180,mr.clientHeight-4);const f=$('tfelt');f.style.width=w+'px';f.style.height=h+'px';}
 window.addEventListener('resize',()=>{if(G)setTimeout(()=>render(),50);});
 function chainBBox(laid){if(!laid.length)return{x:0,y:0,w:1,h:1};let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;for(const t of laid){if(t.x<minX)minX=t.x;if(t.y<minY)minY=t.y;if(t.x+t.w>maxX)maxX=t.x+t.w;if(t.y+t.h>maxY)maxY=t.y+t.h;}return{x:minX,y:minY,w:maxX-minX,h:maxY-minY};}
 function applyChainZoom(cc,laid,fw,fh){const pad=24;const b=chainBBox(laid);const sx=(fw-pad*2)/b.w,sy=(fh-pad*2)/b.h;const s=Math.min(2.6,sx,sy);const bcx=b.x+b.w/2,bcy=b.y+b.h/2;const tx=fw/2-bcx*s,ty=fh/2-bcy*s;cc.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;}// ═══ DRAG TO PLACE SYSTEM ═══
@@ -549,7 +566,8 @@ function simulatePlacement(G,armName,tile,tw,th){
   const sw=sd?TS:TL,sh=sd?TL:TS;
   const cx=tw/2,cy=th/2;
   const tiles=[{x:cx-sw/2,y:cy-sh/2,w:sw,h:sh,a:G.spinner.a,b:G.spinner.b,o:sd?'v':'h'}];
-  const hypArm=[...G[armName],tile];
+  const tileObj=Array.isArray(tile)?{a:tile[0],b:tile[1]}:tile;
+  const hypArm=[...G[armName],tileObj];
   if(armName==='rArm')layArm(hypArm,tiles,cx+sw/2+TG,cy,'right',tw,th);
   else layArm(hypArm,tiles,cx-sw/2-TG,cy,'left',tw,th);
   return tiles.length>1?tiles[tiles.length-1]:null;
