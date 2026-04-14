@@ -86,7 +86,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .til.sel{transform:translateY(-8px);filter:drop-shadow(0 0 10px var(--gold));}
 .til.dis{opacity:.22;cursor:default;}.til.dis:hover{transform:none;}
 .til.dragging{visibility:hidden!important;}
-.ghost{position:absolute;opacity:.25;border:3px dashed var(--gold);border-radius:6px;background:rgba(255,209,0,.1);z-index:10;transition:opacity .15s,border-color .15s;pointer-events:none;}
+.ghost{position:absolute;opacity:.25;border:3px solid var(--gold);border-radius:6px;background:rgba(255,209,0,.1);z-index:10;transition:opacity .15s,border-color .15s;pointer-events:none;}
 
 /* OVERLAYS */
 .ov{display:none;position:fixed;inset:0;background:rgba(0,6,25,.93);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;flex-direction:column;padding:20px;}
@@ -263,7 +263,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 <!-- BLOCKED REVEAL -->
 <div class="ov" id="ov-block">
   <div class="ovt">🔒 Game Blocked!</div>
-  <div class="ovs">No one can play. Lowest pip count wins.</div>
+  <div class="ovs">No one can play. Lowest count wins.</div>
   <div id="block-hands" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:16px;"></div>
   <button class="bt bg" id="btn-block-ok">Continue</button>
 </div>
@@ -550,42 +550,32 @@ function dragMove(e){
   }
 }
 function dragEnd(e){
+  e.preventDefault&&e.cancelable&&e.preventDefault();
   document.removeEventListener('touchmove',dragMove);
   document.removeEventListener('touchend',dragEnd);
   dg.style.display='none';
-  clearGhosts();
-  if(!isDragging){dragIdx=-1;return;}
+  if(!isDragging){clearGhosts();dragIdx=-1;return;}
   isDragging=false;
   const bi=si(0);
   const touch=e.changedTouches[0];
-  let hitEnd=null;
-  // Check against ghost positions (they were just removed, but we can recalculate)
-  // Actually let's check against the felt area and arm positions
-  const felt=$('tfelt'),fr=felt.getBoundingClientRect();
-  // Are we over the felt?
-  if(touch.clientX>=fr.left&&touch.clientX<=fr.right&&touch.clientY>=fr.top&&touch.clientY<=fr.bottom){
-    const t=G.p[bi].h[dragIdx];
-    if(!G.spinner){
-      // Empty board — place as first
-      const r=place(G,bi,dragIdx,'first');dragIdx=-1;after(r);return;
-    }
-    const ends=getEnds(t,G.le,G.re);
-    if(ends.length===1){
-      const r=place(G,bi,dragIdx,ends[0]);dragIdx=-1;after(r);return;
-    }
-    if(ends.length===2){
-      // Dropped on felt with both ends valid — determine which half
-      const feltMidY=fr.top+fr.height/2;
-      const droppedEnd=touch.clientY<feltMidY?'left':'right';
-      pendTile=dragIdx;pendEnd=droppedEnd;
-      const matchVal=G[droppedEnd==='left'?'le':'re'];
-      $('confirm-info').textContent='Connect the '+matchVal+'s?';
-      ovl('m-confirm',true);
-      dragIdx=-1;return;
-    }
+  // Pick the ghost closest to the release point (within snap radius)
+  const ghosts=document.querySelectorAll('.ghost');
+  let best=null,bestDist=Infinity;
+  ghosts.forEach(g=>{
+    const r=g.getBoundingClientRect();
+    const cx=r.left+r.width/2,cy=r.top+r.height/2;
+    const d=Math.hypot(touch.clientX-cx,touch.clientY-cy);
+    if(d<bestDist){bestDist=d;best=g;}
+  });
+  clearGhosts();
+  const idx=dragIdx;dragIdx=-1;
+  if(best&&bestDist<140){
+    const end=best.dataset.end;
+    const r=place(G,bi,idx,end);
+    after(r);return;
   }
   // Missed — restore hand
-  dragIdx=-1;render();
+  render();
 }
 
 let pendEnd=null;
