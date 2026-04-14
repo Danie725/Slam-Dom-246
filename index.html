@@ -223,7 +223,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" id="btn-rules">📜 Rules</button>
     <button class="bt bo" id="btn-stats" style="min-width:180px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.4</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.5</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -630,7 +630,7 @@ function rOH(elId,idx,ori){const el=$(elId);el.innerHTML='';const n=G.p[idx].h.l
 function sizeFelt(){const mr=$('tfelt').parentElement;if(!mr)return;const opps=mr.querySelectorAll('.opp-side');let oppW=0;opps.forEach(o=>oppW+=o.offsetWidth);const gap=8+(opps.length*4);const w=Math.max(180,mr.clientWidth-oppW-gap),h=Math.max(180,mr.clientHeight-4);const f=$('tfelt');f.style.width=w+'px';f.style.height=h+'px';}
 window.addEventListener('resize',()=>{if(G)setTimeout(()=>render(),50);});
 function chainBBox(laid){if(!laid.length)return{x:0,y:0,w:1,h:1};let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;for(const t of laid){if(t.x<minX)minX=t.x;if(t.y<minY)minY=t.y;if(t.x+t.w>maxX)maxX=t.x+t.w;if(t.y+t.h>maxY)maxY=t.y+t.h;}return{x:minX,y:minY,w:maxX-minX,h:maxY-minY};}
-function applyChainZoom(cc,laid,fw,fh){const pad=48;const b=chainBBox(laid);const sx=(fw-pad*2)/Math.max(1,b.w),sy=(fh-pad*2)/Math.max(1,b.h);const s=Math.min(1.8,sx,sy);const bcx=b.x+b.w/2,bcy=b.y+b.h/2;const tx=fw/2-bcx*s,ty=fh/2-bcy*s;cc.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;}// ═══ DRAG TO PLACE SYSTEM ═══
+function applyChainZoom(cc,laid,fw,fh){const pad=48;const b=chainBBox(laid);const sx=(fw-pad*2)/Math.max(1,b.w),sy=(fh-pad*2)/Math.max(1,b.h);const s=Math.min(1,sx,sy);const bcx=b.x+b.w/2,bcy=b.y+b.h/2;const tx=fw/2-bcx*s,ty=fh/2-bcy*s;cc.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;}// ═══ DRAG TO PLACE SYSTEM ═══
 let dragIdx=-1,isDragging=false,dragStartY=0,dragStartX=0,dragThreshold=12,draggedEl=null,lastHighlightTs=0,activePointerId=null;
 const dg=$('drag-ghost');
 
