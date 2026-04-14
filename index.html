@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Island Slam: Dominoes Game</title>
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -16,7 +16,7 @@
 <style>
 :root{--deep:#000B2E;--navy:#001452;--mid:#0A2470;--gold:#FFD100;--gg:rgba(255,209,0,.25);--wh:#FFF;--felt:#0C4420;--fl:#15692F;--fr:#083318;--red:#D32F2F;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);height:100vh;height:100dvh;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);height:100vh;height:100dvh;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
 .pnl{display:none;flex-direction:column;align-items:center;justify-content:center;height:100vh;height:100dvh;padding:16px;width:100%;position:absolute;inset:0;overflow-y:auto;}
 .pnl.on{display:flex;}
 .hbg{background:radial-gradient(ellipse at 50% 25%,var(--mid),var(--navy) 45%,var(--deep));overflow:hidden;}
@@ -59,7 +59,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .sp-cw{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.5rem;opacity:.18;text-align:center;pointer-events:none;line-height:1.3;}.sp-cw::before{content:'↺';display:block;font-size:1.1rem;}
 
 /* ══════════ GAME ══════════ */
-.gwrap{display:none;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:1100px;position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--deep);}
+.gwrap{display:none;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:min(100%,calc(100vh*0.8));max-width:min(100%,calc(100dvh*0.8));position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--deep);padding-bottom:env(safe-area-inset-bottom);box-sizing:border-box;}
 .gwrap.on{display:flex;}
 .tbar{text-align:center;font-weight:800;font-size:.78rem;padding:3px 6px;color:var(--gold);background:rgba(0,0,0,.2);min-height:20px;flex-shrink:0;}
 .mid-row{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;min-width:0;padding:2px 4px;gap:4px;}
@@ -90,13 +90,8 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .opp-top .nbw{font-size:.72rem;}
 .opp-top .nbc{font-size:.4rem;}
 .hrow{padding:0;}
-@media (max-height:500px){
-  .tbar{padding:1px 6px;min-height:14px;font-size:.68rem;}
-  .opp-top{padding:0;gap:1px;zoom:.72;}
-  .opp-side{width:48px!important;zoom:.82;}
-  .player-row{padding:0 6px 2px;gap:0;zoom:.82;}
-  .player-row .arow{gap:4px;}
-}
+.rotate-prompt{display:none;position:fixed;inset:0;background:var(--deep);align-items:center;justify-content:center;z-index:9999;padding:24px;text-align:center;color:#fff;}
+@media (orientation:landscape) and (max-height:600px){.gwrap,.pnl{display:none!important;}.rotate-prompt{display:flex!important;}}
 @keyframes tp{0%,100%{box-shadow:0 0 14px rgba(255,209,0,.35)}50%{box-shadow:0 0 28px rgba(255,209,0,.55)}}
 .tfelt{flex:0 0 auto;border-radius:10px;background:repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0 1px,transparent 1px 5px),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 11px),repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0 2px,transparent 2px 24px),linear-gradient(90deg,#c88a59 0%,#a86538 35%,#8a4a22 70%,#6d3815 100%);border:4px solid #2e1808;box-shadow:inset 0 4px 18px rgba(0,0,0,.55),0 0 0 2px #4e2a15;position:relative;overflow:hidden;}
 .cc{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0;will-change:transform;}
@@ -184,6 +179,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 </head>
 <body>
 <div class="tbox" id="TB"></div>
+<div class="rotate-prompt"><div><div style="font-size:3rem;line-height:1;">📱↻</div><h2 style="font-family:'Righteous',cursive;color:var(--gold);margin:12px 0 6px;">Rotate to Portrait</h2><p style="opacity:.7;font-size:.88rem;">Island Slam plays in portrait mode</p></div></div>
 
 <!-- HOME -->
 <div class="pnl hbg on" id="p-home">
@@ -195,7 +191,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.7.4</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.8.0</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -340,7 +336,7 @@ const OPP_W=MOB?16:26,OPP_H=MOB?28:46;
 const BACK_W=MOB?18:24,BACK_H=MOB?30:40;
 const PREV_W=MOB?18:22,PREV_H=MOB?34:40;
 const TL=MOB?36:52,TS=MOB?18:26,TG=1;
-const TMY=10,TMX=10;
+const TMY=22,TMX=22;
 
 // ═══ FIREBASE ═══
 const DB='https://island-slam-dominoe-game-default-rtdb.firebaseio.com';
@@ -433,22 +429,36 @@ function aiMv(G,pi){
 }
 
 // ═══ CHAIN LAYOUT — VERTICAL (portrait-friendly) ═══
+function chainStartConfig(G,tw,th){
+  const sd=isDbl(G.spinner);
+  const tall=th>=tw;
+  let sw,sh,sori,rInit,rSX,rSY,lInit,lSX,lSY;
+  const cx=tw/2,cy=th/2;
+  if(tall){
+    sw=sd?TL:TS;sh=sd?TS:TL;sori=sd?'h':'v';
+    rInit='down';rSX=cx;rSY=cy+sh/2+TG;
+    lInit='up';  lSX=cx;lSY=cy-sh/2-TG;
+  }else{
+    sw=sd?TS:TL;sh=sd?TL:TS;sori=sd?'v':'h';
+    rInit='right';rSX=cx+sw/2+TG;rSY=cy;
+    lInit='left'; lSX=cx-sw/2-TG;lSY=cy;
+  }
+  return{spinner:{x:cx-sw/2,y:cy-sh/2,w:sw,h:sh,a:G.spinner.a,b:G.spinner.b,o:sori},rInit,rSX,rSY,lInit,lSX,lSY};
+}
 function layoutChain(G,tw,th){
   if(!G.spinner)return[];
-  const tiles=[];const sd=isDbl(G.spinner);
-  // Horizontal chain: regular tile horizontal, double perpendicular (vertical)
-  const sw=sd?TS:TL,sh=sd?TL:TS;
-  const cx=tw/2,cy=th/2;
-  tiles.push({x:cx-sw/2,y:cy-sh/2,w:sw,h:sh,a:G.spinner.a,b:G.spinner.b,o:sd?'v':'h'});
-  layArm(G.rArm,tiles,cx+sw/2+TG,cy,'right',tw,th);
-  layArm(G.lArm,tiles,cx-sw/2-TG,cy,'left',tw,th);
+  const cfg=chainStartConfig(G,tw,th);
+  const tiles=[cfg.spinner];
+  layArm(G.rArm,tiles,cfg.rSX,cfg.rSY,cfg.rInit,tw,th);
+  layArm(G.lArm,tiles,cfg.lSX,cfg.lSY,cfg.lInit,tw,th);
   return tiles;
 }
 function layArm(arm,tiles,startX,startY,initialDir,tw,th){
   // Spiral sequences: right arm clockwise, left arm counter-clockwise
   const cwNext={right:'down',down:'left',left:'up',up:'right'};
   const ccwNext={left:'up',up:'right',right:'down',down:'left'};
-  const nextDir=initialDir==='right'?cwNext:ccwNext;
+  const isRArm=initialDir==='right'||initialDir==='down';
+  const nextDir=isRArm?cwNext:ccwNext;
   let dir=initialDir,hx=startX,hy=startY;
   for(let i=0;i<arm.length;i++){
     const t=arm[i];const db=t.a===t.b;
@@ -562,14 +572,12 @@ function showDragGhosts(tileIdx){
   }
 }
 function simulatePlacement(G,armName,tile,tw,th){
-  const sd=isDbl(G.spinner);
-  const sw=sd?TS:TL,sh=sd?TL:TS;
-  const cx=tw/2,cy=th/2;
-  const tiles=[{x:cx-sw/2,y:cy-sh/2,w:sw,h:sh,a:G.spinner.a,b:G.spinner.b,o:sd?'v':'h'}];
+  const cfg=chainStartConfig(G,tw,th);
+  const tiles=[cfg.spinner];
   const tileObj=Array.isArray(tile)?{a:tile[0],b:tile[1]}:tile;
   const hypArm=[...G[armName],tileObj];
-  if(armName==='rArm')layArm(hypArm,tiles,cx+sw/2+TG,cy,'right',tw,th);
-  else layArm(hypArm,tiles,cx-sw/2-TG,cy,'left',tw,th);
+  if(armName==='rArm')layArm(hypArm,tiles,cfg.rSX,cfg.rSY,cfg.rInit,tw,th);
+  else layArm(hypArm,tiles,cfg.lSX,cfg.lSY,cfg.lInit,tw,th);
   return tiles.length>1?tiles[tiles.length-1]:null;
 }
 function addGhost(parent,end,x,y,w,h){
@@ -624,7 +632,12 @@ function beginDragVisual(){
     const felt=$('tfelt'),cc=$('cc');
     const bi=si(0),t=G.p[bi].h[dragIdx];
     const isD=t[0]===t[1];
-    const gW=isD?TS:TL,gH=isD?TL:TS;
+    const tall=felt.clientHeight>=felt.clientWidth;
+    // Tall felt: first tile is vertical orientation (regular) or horizontal (double)
+    // Wide felt: first tile is horizontal (regular) or vertical (double)
+    let gW,gH;
+    if(tall){gW=isD?TL:TS;gH=isD?TS:TL;}
+    else{gW=isD?TS:TL;gH=isD?TL:TS;}
     addGhost(cc,'first',felt.clientWidth/2-gW/2,felt.clientHeight/2-gH/2,gW,gH);
   }
 }
