@@ -62,10 +62,9 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .gwrap{display:none;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:980px;position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--deep);}
 .gwrap.on{display:flex;}
 .tbar{text-align:center;font-weight:800;font-size:.82rem;padding:4px 6px;color:var(--gold);background:rgba(0,0,0,.2);min-height:22px;flex-shrink:0;}
-.mid-row{flex:1;display:flex;min-height:0;gap:4px;padding:0 4px;}
+.mid-row{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;min-width:0;padding:4px;position:relative;}
 .opp-area{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
 .opp-top{padding:4px 0 2px;}
-.opp-side{justify-content:center;padding:2px 0;}
 .nb{background:rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.14);border-radius:8px;padding:3px 10px;display:flex;flex-direction:column;align-items:center;min-width:62px;}
 .nb.turn-glow{border-color:var(--gold);box-shadow:0 0 14px rgba(255,209,0,.55);animation:tp 1.4s ease-in-out infinite;}
 .nbn{font-size:.66rem;font-weight:800;color:#fff;line-height:1.1;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
@@ -74,11 +73,16 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 @media(min-width:640px){.nbn{font-size:.82rem;}.nbw{font-size:.94rem;}.nbc{font-size:.54rem;}.nb{padding:4px 12px;min-width:76px;}}
 .oh{display:flex;}
 .oh-h{flex-direction:row;gap:3px;justify-content:center;flex-wrap:nowrap;}
-.oh-v{flex-direction:column;gap:3px;align-items:center;justify-content:center;}
+.oh-col{flex-direction:column;gap:3px;align-items:center;justify-content:center;}
 .oh>div{flex-shrink:0;}
+.opp-ol{position:absolute;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px;z-index:25;pointer-events:none;gap:6px;}
+.opp-ol-left{left:0;}
+.opp-ol-right{right:0;}
 .player-row{padding:4px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
+.rotate-prompt{display:none;position:fixed;inset:0;background:var(--deep);align-items:center;justify-content:center;z-index:9999;padding:24px;text-align:center;color:#fff;}
+@media(orientation:portrait) and (max-width:900px){.gwrap,.pnl{display:none!important;}.rotate-prompt{display:flex!important;}}
 @keyframes tp{0%,100%{box-shadow:0 0 14px rgba(255,209,0,.35)}50%{box-shadow:0 0 28px rgba(255,209,0,.55)}}
-.tfelt{flex:1;border-radius:10px;background:repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0 1px,transparent 1px 5px),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 11px),repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0 2px,transparent 2px 24px),linear-gradient(90deg,#c88a59 0%,#a86538 35%,#8a4a22 70%,#6d3815 100%);border:4px solid #2e1808;box-shadow:inset 0 4px 18px rgba(0,0,0,.55),0 0 0 2px #4e2a15;position:relative;overflow:hidden;min-width:0;min-height:0;}
+.tfelt{flex:0 0 auto;border-radius:10px;background:repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0 1px,transparent 1px 5px),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 11px),repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0 2px,transparent 2px 24px),linear-gradient(90deg,#c88a59 0%,#a86538 35%,#8a4a22 70%,#6d3815 100%);border:4px solid #2e1808;box-shadow:inset 0 4px 18px rgba(0,0,0,.55),0 0 0 2px #4e2a15;position:relative;overflow:hidden;}
 .cc{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0;will-change:transform;}
 .te{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.12);font-weight:700;font-size:.7rem;}
 .seat-bot{padding:3px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;}
@@ -164,6 +168,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 </head>
 <body>
 <div class="tbox" id="TB"></div>
+<div class="rotate-prompt"><div><div style="font-size:3rem;line-height:1;">📱↻</div><h2 style="font-family:'Righteous',cursive;color:var(--gold);margin:12px 0 6px;">Rotate Your Device</h2><p style="opacity:.7;font-size:.88rem;">Island Slam plays best in landscape</p></div></div>
 
 <!-- HOME -->
 <div class="pnl hbg on" id="p-home">
@@ -175,7 +180,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.7.1</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.7.2</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -245,14 +250,17 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <div class="oh oh-h" id="oh-top"></div>
   </div>
   <div class="mid-row">
-    <div class="opp-area opp-side opp-left">
-      <div class="nb" id="nb-left"><div class="nbn" id="nbn-left"></div><div class="nbw" id="nbw-left">0</div><div class="nbc" id="nbc-left"></div></div>
-      <div class="oh oh-v" id="oh-left"></div>
-    </div>
-    <div class="tfelt" id="tfelt"><span class="te" id="te">Waiting for first tile...</span><div class="cc" id="cc"></div></div>
-    <div class="opp-area opp-side opp-right">
-      <div class="nb" id="nb-right"><div class="nbn" id="nbn-right"></div><div class="nbw" id="nbw-right">0</div><div class="nbc" id="nbc-right"></div></div>
-      <div class="oh oh-v" id="oh-right"></div>
+    <div class="tfelt" id="tfelt">
+      <span class="te" id="te">Waiting for first tile...</span>
+      <div class="cc" id="cc"></div>
+      <div class="opp-ol opp-ol-left">
+        <div class="nb" id="nb-left"><div class="nbn" id="nbn-left"></div><div class="nbw" id="nbw-left">0</div><div class="nbc" id="nbc-left"></div></div>
+        <div class="oh oh-col" id="oh-left"></div>
+      </div>
+      <div class="opp-ol opp-ol-right">
+        <div class="nb" id="nb-right"><div class="nbn" id="nbn-right"></div><div class="nbw" id="nbw-right">0</div><div class="nbc" id="nbc-right"></div></div>
+        <div class="oh oh-col" id="oh-right"></div>
+      </div>
     </div>
   </div>
   <div class="player-row">
@@ -315,7 +323,8 @@ const W=window.innerWidth,MOB=W<500;
 const HAND_W=MOB?26:44,HAND_H=MOB?48:80;
 const BACK_W=MOB?18:24,BACK_H=MOB?30:40;
 const PREV_W=MOB?18:22,PREV_H=MOB?34:40;
-const TL=MOB?36:52,TS=MOB?18:26,TG=1,TM=10;
+const TL=MOB?36:52,TS=MOB?18:26,TG=1;
+const TMY=8;const TMX=MOB?42:72;
 
 // ═══ FIREBASE ═══
 const DB='https://island-slam-dominoe-game-default-rtdb.firebaseio.com';
@@ -438,16 +447,16 @@ function layArm(arm,tiles,startX,startY,initialDir,tw,th){
       else if(dir==='left'){tx=hx-tW;ty=hy-tH/2;}
       else if(dir==='down'){tx=hx-tW/2;ty=hy;}
       else{tx=hx-tW/2;ty=hy-tH;}
-      const fits=tx>=TM&&tx+tW<=tw-TM&&ty>=TM&&ty+tH<=th-TM;
+      const fits=tx>=TMX&&tx+tW<=tw-TMX&&ty>=TMY&&ty+tH<=th-TMY;
       if(!fits){
         const od=dir;dir=nextDir[dir];
         const nh=(dir==='right'||dir==='left');
         const ntW=nh?(db?TS:TL):(db?TL:TS);
         const ntH=nh?(db?TL:TS):(db?TS:TL);
-        if(od==='right'){hx=tw-TM-ntW/2;hy=hy+tH/2+TG;}
-        else if(od==='left'){hx=TM+ntW/2;hy=hy-tH/2-TG;}
-        else if(od==='down'){hx=hx-tW/2-TG;hy=th-TM-ntH/2;}
-        else{hx=hx+tW/2+TG;hy=TM+ntH/2;}
+        if(od==='right'){hx=tw-TMX-ntW/2;hy=hy+tH/2+TG;}
+        else if(od==='left'){hx=TMX+ntW/2;hy=hy-tH/2-TG;}
+        else if(od==='down'){hx=hx-tW/2-TG;hy=th-TMY-ntH/2;}
+        else{hx=hx+tW/2+TG;hy=TMY+ntH/2;}
         continue;
       }
       let ra,rb;
@@ -476,8 +485,9 @@ function render(){
     else tb.textContent=getPlay(G.p[bi].h,G.le,G.re).length?'Your turn — pick a tile':'No plays — tap Knock';
   }else tb.textContent=G.p[G.turn].nm+"'s turn...";
 
+  sizeFelt();
   rNB('top',ti);rNB('left',li);rNB('right',ri);rNB('player',bi);
-  rOH('oh-top',ti);rOH('oh-left',li);rOH('oh-right',ri);
+  rOH('oh-top',ti,'v');rOH('oh-left',li,'h');rOH('oh-right',ri,'h');
 
   const cc=$('cc'),te=$('te'),felt=$('tfelt'),fw=felt.clientWidth,fh=felt.clientHeight;
   if(!G.spinner){cc.innerHTML='';cc.style.transform='';te.style.display='block';}
@@ -510,7 +520,9 @@ function render(){
   }
 }
 function rNB(suf,idx){const p=G.p[idx];$('nbn-'+suf).textContent=p.nm;$('nbw-'+suf).textContent=p.w;$('nbc-'+suf).textContent=p.h.length+' tiles';$('nb-'+suf).classList.toggle('turn-glow',G.turn===idx&&!G.go);}
-function rOH(elId,idx){const el=$(elId);el.innerHTML='';const n=G.p[idx].h.length;for(let i=0;i<n;i++){const d=document.createElement('div');d.innerHTML=bsvg('v',HAND_W,HAND_H);el.appendChild(d);}}
+function rOH(elId,idx,ori){const el=$(elId);el.innerHTML='';const n=G.p[idx].h.length;for(let i=0;i<n;i++){const d=document.createElement('div');d.innerHTML=bsvg(ori,HAND_W,HAND_H);el.appendChild(d);}}
+function sizeFelt(){const mr=$('tfelt').parentElement;if(!mr)return;const cw=mr.clientWidth-8,ch=mr.clientHeight-8;const s=Math.max(120,Math.min(cw,ch));const f=$('tfelt');f.style.width=s+'px';f.style.height=s+'px';}
+window.addEventListener('resize',()=>{if(G)setTimeout(()=>render(),50);});
 function chainBBox(laid){if(!laid.length)return{x:0,y:0,w:1,h:1};let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;for(const t of laid){if(t.x<minX)minX=t.x;if(t.y<minY)minY=t.y;if(t.x+t.w>maxX)maxX=t.x+t.w;if(t.y+t.h>maxY)maxY=t.y+t.h;}return{x:minX,y:minY,w:maxX-minX,h:maxY-minY};}
 function applyChainZoom(cc,laid,fw,fh){const pad=24;const b=chainBBox(laid);const sx=(fw-pad*2)/b.w,sy=(fh-pad*2)/b.h;const s=Math.min(2.6,sx,sy);const bcx=b.x+b.w/2,bcy=b.y+b.h/2;const tx=fw/2-bcx*s,ty=fh/2-bcy*s;cc.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;}// ═══ DRAG TO PLACE SYSTEM ═══
 let dragIdx=-1,isDragging=false,dragStartY=0,dragStartX=0,dragThreshold=12,draggedEl=null,lastHighlightTs=0,activePointerId=null;
@@ -593,7 +605,10 @@ function beginDragVisual(){
   if(G.spinner)showDragGhosts(dragIdx);
   else{
     const felt=$('tfelt'),cc=$('cc');
-    addGhost(cc,'first',felt.clientWidth/2-TL/2,felt.clientHeight/2-TS/2,TL,TS);
+    const bi=si(0),t=G.p[bi].h[dragIdx];
+    const isD=t[0]===t[1];
+    const gW=isD?TS:TL,gH=isD?TL:TS;
+    addGhost(cc,'first',felt.clientWidth/2-gW/2,felt.clientHeight/2-gH/2,gW,gH);
   }
 }
 function updateDragVisual(x,y){
