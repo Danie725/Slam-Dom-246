@@ -223,7 +223,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" id="btn-rules">📜 Rules</button>
     <button class="bt bo" id="btn-stats" style="min-width:180px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.5</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.6</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -327,7 +327,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
   <ul>
     <li>Uses a standard <b>double-six</b> set (28 tiles).</li>
     <li>Each player is dealt <b>7 tiles</b>. No boneyard.</li>
-    <li>Whoever holds the <b>double-six</b> poses it to start the first round. In later rounds, the previous round's winner poses any tile.</li>
+    <li>Whoever holds the <b>double-six</b> poses it to start every round.</li>
   </ul>
 
   <h4>Turn Order</h4>
@@ -346,7 +346,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
   <h4>Winning a Round</h4>
   <ul>
     <li><b>Domino:</b> play your last tile. You win the round and score one.</li>
-    <li><b>Blocked:</b> whoever has the <b>lowest pip count</b> left in their hand wins — but only players with at least one previous round win are eligible. If nobody qualifies or there's a tie, the round scratches and restarts with the double-six.</li>
+    <li><b>Blocked:</b> whoever has the <b>lowest count</b> left in their hand wins the round — but only if they are already <b>out</b> (have at least one prior round win). If the lowest-count player is not out yet, or multiple players tie at the lowest count, the round is scrapped and the next round restarts with the double-six.</li>
   </ul>
 
   <h4>Winning the Match</h4>
@@ -398,7 +398,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 <div class="ov" id="ov-rnd"><div class="ov-panel"><div class="ovt" id="rnd-t"></div><div class="ovs" id="rnd-s"></div><div class="osc" id="rnd-sc"></div><div class="ready-list" id="rnd-ready"></div><button class="bt bg" id="btn-nxt">Ready Up</button><button class="bt bo bs" id="btn-analyze" style="margin-top:8px;font-size:.72rem;padding:8px 16px;min-width:auto;">🔍 Analyze Board</button></div></div>
 <div class="ov" id="ov-match"><div class="ov-panel"><div class="ovt" id="m-t"></div><div class="ovs" id="m-s"></div><div class="osc" id="m-sc"></div><div class="brow"><button class="bt bg bs" id="btn-re">Play Again</button><button class="bt bo bs" id="btn-mh">End</button></div></div></div>
 <div class="ov" id="ov-aw"><div class="ov-panel"><div class="ovt">⚠️ Full Reset!</div><div class="ovs">All 4 players have a win — game resets.</div><div class="osc" id="aw-sc"></div><div class="brow"><button class="bt bg bs" id="btn-awr">Restart</button><button class="bt bo bs" id="btn-awe">End</button></div></div></div>
-<div class="ov" id="ov-sous"><div class="ov-panel sous-panel"><div class="ovt">🐷 SOUS!</div><img src="sous_pig.png" alt="" class="sous-img"><div class="sous-caption" id="sous-caption"></div><button class="bt bg" id="btn-sous-ok">Continue</button></div></div>
+<div class="ov" id="ov-sous"><div class="ov-panel sous-panel"><div class="ovt">🐷 SOW!</div><img src="sous_pig.png" alt="" class="sous-img"><div class="sous-caption" id="sous-caption"></div><button class="bt bg" id="btn-sous-ok">Continue</button></div></div>
 <button class="ov-analyze-btn" id="btn-resume-rnd">Return to Results</button>
 
 <script>
@@ -449,7 +449,7 @@ function mkG(names,humans){return{p:names.map((n,i)=>({nm:n,h:[],w:0,hu:humans[i
 function deal(G){const s=shuf(mkSet());for(let i=0;i<4;i++)G.p[i].h=s.slice(i*7,i*7+7);G.spinner=null;G.rArm=[];G.lArm=[];G.le=-1;G.re=-1;G.ck=0;G.go=false;}
 function findD6(G){for(let i=0;i<4;i++)for(const t of G.p[i].h)if(t[0]===6&&t[1]===6)return i;return 0;}
 function startMatch(G){for(const p of G.p)p.w=0;G.rn=0;G.fr=true;G.lw=-1;startRound(G);}
-function startRound(G){deal(G);G.rn++;if(G.fr||G.lw<0){G.poser=findD6(G);G.turn=G.poser;}else{G.poser=G.lw;G.turn=G.lw;}}
+function startRound(G){deal(G);G.rn++;G.poser=findD6(G);G.turn=G.poser;}
 function canPlay(t,le,re){if(le<0)return true;return t[0]===le||t[1]===le||t[0]===re||t[1]===re;}
 function getPlay(h,le,re){return h.map((t,i)=>({t,i})).filter(({t})=>canPlay(t,le,re));}
 function getEnds(t,le,re){if(le<0)return['first'];const e=new Set();if(t[0]===le||t[1]===le)e.add('left');if(t[0]===re||t[1]===re)e.add('right');return[...e];}
@@ -457,14 +457,18 @@ function place(G,pi,ti,end){const tile=G.p[pi].h.splice(ti,1)[0];let a=tile[0],b
 function knock(G){G.ck++;if(G.ck>=4){G.go=true;return{type:'blocked'};}return{type:'ok'};}
 function adv(G){G.turn=(G.turn+1)%4;}
 function resBlock(G){
+  // Rank all players by pip count; the overall lowest wins the blocked game,
+  // but only if they are already 'out' (have at least one prior round win).
+  // If the lowest-count player is not yet out, the round is scrapped and the
+  // next round starts with the double-six poser. Same if multiple players tie
+  // at the lowest count.
   const c=G.p.map((p,i)=>({i,pp:pc(p.h),w:p.w}));c.sort((a,b)=>a.pp-b.pp);
-  if(!G.p.some(p=>p.w>0))return{type:'restart',msg:'Blocked — no previous winners. Full restart!'};
-  const el=c.filter(x=>x.w>0);
-  if(el.length===0)return{type:'nowin',msg:'Blocked — no eligible winner.'};
-  const lowestPip=el[0].pp;
-  const tied=el.filter(x=>x.pp===lowestPip);
+  const lowestPip=c[0].pp;
+  const tied=c.filter(x=>x.pp===lowestPip);
   if(tied.length>1)return{type:'scratch',msg:'Blocked & tied at count '+lowestPip+'! Scratch — restarting with double-six.'};
-  return{type:'bwin',wi:el[0].i,pp:el[0].pp};
+  const best=tied[0];
+  if(best.w===0)return{type:'scratch',msg:'Blocked — '+G.p[best.i].nm+' has the lowest count ('+lowestPip+') but is not out yet. Restarting with double-six.'};
+  return{type:'bwin',wi:best.i,pp:lowestPip};
 }
 function allWon(G){return G.p.every(p=>p.w>0);}
 function chkMatch(G){for(let i=0;i<4;i++)if(G.p[i].w>=6&&G.p.some(p=>p.w===0))return{won:true,ch:i};return{won:false};}
@@ -753,7 +757,7 @@ function finishDrag(px,py){
   clearGhosts();
   const idx=dragIdx;dragIdx=-1;
   const el=draggedEl;draggedEl=null;
-  if(best&&bestDist<140){
+  if(best&&bestDist<200){
     const r=place(G,bi,idx,best.dataset.end);
     after(r);return;
   }
@@ -853,7 +857,7 @@ function checkAllReady(){if(!G||!G.ready)return;if(G.ready.every(r=>r)){if(gameM
 function resetBoardView(){document.body.classList.remove('analyzing');$('ov-rnd').classList.remove('minimized');$('ov-match').classList.remove('minimized');$('ov-aw').classList.remove('minimized');const cc=$('cc');if(cc)cc.style.transform='';}
 function showMO(ci){$('m-t').textContent='🏆 Champion!';$('m-s').textContent=G.p[ci].nm+' wins with '+G.p[ci].w+' rounds!';$('m-sc').innerHTML='';G.p.forEach((p,i)=>{const d=document.createElement('div');d.className='osp'+(i===ci?' ch':'');d.innerHTML=`<div class="ospn">${p.nm}</div><div class="ospw">${p.w}</div>`;$('m-sc').appendChild(d);});ovl('ov-match',true);}
 let pendingChampion=-1;
-function showMatchEnd(ci){const sous=G.p.map((p,i)=>p.w===0?i:-1).filter(i=>i>=0);if(sous.length===0){showMO(ci);return;}pendingChampion=ci;const names=sous.map(i=>G.p[i].nm);$('sous-caption').textContent=names.join(' & ')+(names.length>1?' hold':' holds')+' a sous';ovl('ov-sous',true);}
+function showMatchEnd(ci){const sous=G.p.map((p,i)=>p.w===0?i:-1).filter(i=>i>=0);if(sous.length===0){showMO(ci);return;}pendingChampion=ci;const names=sous.map(i=>G.p[i].nm);$('sous-caption').textContent=names.join(' & ')+(names.length>1?' hold':' holds')+' a sow';ovl('ov-sous',true);}
 function showAW(){scC('aw-sc',-1);ovl('ov-aw',true);}
 function begin(){resetBoardView();render();if(gameMode==='ai'){render();if(!G.p[G.turn].hu)setTimeout(runAI,AI_DELAY[aiDiff]||1200);}}
 
