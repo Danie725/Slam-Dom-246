@@ -142,6 +142,21 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
   .hlbl{font-size:.55rem;}
 }
 </style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyBWIKyvrMuzAPXE2EhpryqdUHpcDzPpc9U",
+    authDomain: "island-slam-dominoe-game.firebaseapp.com",
+    projectId: "island-slam-dominoe-game",
+    storageBucket: "island-slam-dominoe-game.firebasestorage.app",
+    messagingSenderId: "100956523382",
+    appId: "1:100956523382:web:8af09b2d4589b4682b4857",
+    measurementId: "G-Y71KGJLNGV"
+  };
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 </head>
 <body>
 <div class="tbox" id="TB"></div>
