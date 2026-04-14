@@ -191,7 +191,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.8.2</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.8.3</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -363,7 +363,7 @@ function shufArr(a){for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);
 function mkSet(){const t=[];for(let a=0;a<=6;a++)for(let b=a;b<=6;b++)t.push([a,b]);return t;}
 function shuf(a){for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
 function pc(h){return h.reduce((s,[a,b])=>s+a+b,0);}
-function isDbl(t){return t[0]===t[1];}
+function isDbl(t){return Array.isArray(t)?t[0]===t[1]:t.a===t.b;}
 function mkG(names,humans){return{p:names.map((n,i)=>({nm:n,h:[],w:0,hu:humans[i]})),spinner:null,rArm:[],lArm:[],le:-1,re:-1,turn:0,poser:0,rn:0,fr:true,ck:0,go:false,lw:-1,mode:humans.filter(Boolean).length>1?'online':'ai'};}
 function deal(G){const s=shuf(mkSet());for(let i=0;i<4;i++)G.p[i].h=s.slice(i*7,i*7+7);G.spinner=null;G.rArm=[];G.lArm=[];G.le=-1;G.re=-1;G.ck=0;G.go=false;}
 function findD6(G){for(let i=0;i<4;i++)for(const t of G.p[i].h)if(t[0]===6&&t[1]===6)return i;return 0;}
@@ -430,15 +430,16 @@ function aiMv(G,pi){
 
 // ═══ CHAIN LAYOUT — VERTICAL (portrait-friendly) ═══
 function chainStartConfig(G,tw,th){
+  const sd=isDbl(G.spinner);
   const tall=th>=tw;
   let sw,sh,sori,rInit,rSX,rSY,lInit,lSX,lSY;
   const cx=tw/2,cy=th/2;
   if(tall){
-    sw=TS;sh=TL;sori='v';
+    sw=sd?TL:TS;sh=sd?TS:TL;sori=sd?'h':'v';
     rInit='down';rSX=cx;rSY=cy+sh/2+TG;
     lInit='up';  lSX=cx;lSY=cy-sh/2-TG;
   }else{
-    sw=TL;sh=TS;sori='h';
+    sw=sd?TS:TL;sh=sd?TL:TS;sori=sd?'v':'h';
     rInit='right';rSX=cx+sw/2+TG;rSY=cy;
     lInit='left'; lSX=cx-sw/2-TG;lSY=cy;
   }
@@ -460,13 +461,13 @@ function layArm(arm,tiles,startX,startY,initialDir,tw,th){
   let dir=initialDir,hx=startX,hy=startY;
   let lastMidX=null,lastMidY=null,lastTW=0,lastTH=0;
   for(let i=0;i<arm.length;i++){
-    const t=arm[i];
+    const t=arm[i];const db=t.a===t.b;
     let placed=false;
     for(let tries=0;tries<4&&!placed;tries++){
       const h=(dir==='right'||dir==='left');
-      const tW=h?TL:TS;
-      const tH=h?TS:TL;
-      const ori=h?'h':'v';
+      const tW=h?(db?TS:TL):(db?TL:TS);
+      const tH=h?(db?TL:TS):(db?TS:TL);
+      const ori=h?(db?'v':'h'):(db?'h':'v');
       let tx,ty;
       if(dir==='right'){tx=hx;ty=hy-tH/2;}
       else if(dir==='left'){tx=hx-tW;ty=hy-tH/2;}
@@ -628,8 +629,12 @@ function beginDragVisual(){
   if(G.spinner)showDragGhosts(dragIdx);
   else{
     const felt=$('tfelt'),cc=$('cc');
+    const bi=si(0),t=G.p[bi].h[dragIdx];
+    const isD=t[0]===t[1];
     const tall=felt.clientHeight>=felt.clientWidth;
-    const gW=tall?TS:TL,gH=tall?TL:TS;
+    let gW,gH;
+    if(tall){gW=isD?TL:TS;gH=isD?TS:TL;}
+    else{gW=isD?TS:TL;gH=isD?TL:TS;}
     addGhost(cc,'first',felt.clientWidth/2-gW/2,felt.clientHeight/2-gH/2,gW,gH);
   }
 }
