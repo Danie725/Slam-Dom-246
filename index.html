@@ -16,6 +16,7 @@
 <style>
 :root{--deep:#000B2E;--navy:#001452;--mid:#0A2470;--gold:#FFD700;--gg:rgba(255,215,0,.25);--wh:#FFF;--felt:#0C4420;--fl:#15692F;--fr:#083318;--red:#D32F2F;}
 *{margin:0;padding:0;box-sizing:border-box;}
+html{touch-action:none;overscroll-behavior:none;-webkit-text-size-adjust:100%;}
 body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);height:100vh;height:100dvh;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
 .pnl{display:none;flex-direction:column;align-items:center;justify-content:center;height:100vh;height:100dvh;padding:16px;width:100%;position:absolute;inset:0;overflow-y:auto;}
 .pnl.on{display:flex;}
@@ -27,8 +28,9 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .menu-art{display:block;width:auto;max-width:80%;max-height:34vh;border-radius:18px;border:2px solid rgba(255,215,0,.55);box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 0 1px rgba(255,215,0,.15),inset 0 0 0 1px rgba(0,0,0,.2);margin:8px auto 14px;object-fit:cover;}
 @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .logo{font-family:'Righteous',cursive;font-size:clamp(1.8rem,8vw,3rem);color:var(--gold);text-shadow:0 2px 16px rgba(255,209,0,.2);letter-spacing:2px;text-align:center;line-height:1.15;}
-.lsub{font-size:.7rem;color:rgba(255,255,255,.35);letter-spacing:5px;text-transform:uppercase;margin-bottom:32px;font-weight:700;}
-.home-footer{margin-top:36px;font-size:.55rem;opacity:.15;text-align:center;line-height:1.6;}
+.lsub{font-size:.7rem;color:var(--gold);opacity:.85;letter-spacing:5px;text-transform:uppercase;margin-bottom:32px;font-weight:700;}
+.home-footer{margin-top:36px;font-size:.55rem;color:var(--gold);opacity:.75;text-align:center;line-height:1.6;font-weight:700;}
+.home-footer span{color:var(--gold);opacity:.85;}
 .bst{display:flex;flex-direction:column;gap:10px;align-items:center;}
 .bt{font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;border:none;border-radius:14px;padding:13px 28px;cursor:pointer;transition:all .15s;min-width:220px;text-align:center;}
 .bt:active{transform:scale(.95);}
@@ -221,7 +223,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" id="btn-rules">📜 Rules</button>
     <button class="bt bo" id="btn-stats" style="min-width:180px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.3</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.4</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -964,11 +966,28 @@ $('btn-rules-ok').addEventListener('click',()=>ovl('m-rules',false));
 // Splash screen fade-out
 setTimeout(()=>{const s=$('splash');if(s){s.classList.add('fade-out');setTimeout(()=>s.remove(),650);}},2500);
 // Block iOS Safari pinch-zoom (touch-action:none doesn't always stop gesturestart)
-document.addEventListener('gesturestart',e=>e.preventDefault());
-document.addEventListener('gesturechange',e=>e.preventDefault());
-document.addEventListener('gestureend',e=>e.preventDefault());
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
 document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
-document.addEventListener('dblclick',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+// If iOS still zooms (some versions ignore the above), listen for visual viewport changes
+// and snap the page back to scale 1 by force-scrolling to origin.
+if(window.visualViewport){
+  const vv=window.visualViewport;
+  let snapBack=null;
+  vv.addEventListener('resize',()=>{
+    if(vv.scale>1.01){
+      clearTimeout(snapBack);
+      snapBack=setTimeout(()=>{
+        // Document-level scroll reset to force the visual viewport back
+        window.scrollTo(0,0);
+        if(G)render();
+      },80);
+    }
+  });
+}
 
 // Hook into match end to record stats
 const _showMO=showMO;
