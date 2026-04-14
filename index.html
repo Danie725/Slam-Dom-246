@@ -304,7 +304,7 @@ const PREV_W=MOB?18:22,PREV_H=MOB?34:40;
 const TL=MOB?34:50,TS=MOB?18:26,TG=2,TM=4;
 
 // ═══ FIREBASE ═══
-const DB='https://slamdom246-default-rtdb.firebaseio.com';
+const DB='https://island-slam-dominoe-game-default-rtdb.firebaseio.com';
 async function fbGet(p){try{return await(await fetch(DB+'/'+p+'.json')).json();}catch(e){return null;}}
 async function fbSet(p,d){try{await fetch(DB+'/'+p+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});}catch(e){}}
 async function fbDel(p){try{await fetch(DB+'/'+p+'.json',{method:'DELETE'});}catch(e){}}
