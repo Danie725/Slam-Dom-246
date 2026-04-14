@@ -156,7 +156,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.6.3</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.6.7</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -164,8 +164,8 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
   <div class="crd"><h2>Play vs AI</h2>
     <input class="inf" id="ai-nm" placeholder="Your name" maxlength="12" autocomplete="off">
     <div style="display:flex;gap:6px;justify-content:center;margin:10px 0;">
-      <label class="diff-btn"><input type="radio" name="diff" value="easy"><span>Greenie</span></label>
-      <label class="diff-btn"><input type="radio" name="diff" value="medium" checked><span>The Slammer</span></label>
+      <label class="diff-btn"><input type="radio" name="diff" value="easy"><span>Rookie</span></label>
+      <label class="diff-btn"><input type="radio" name="diff" value="medium" checked><span>Casual</span></label>
       <label class="diff-btn"><input type="radio" name="diff" value="hard"><span>Cut-Throat</span></label>
     </div>
     <div class="brow"><button class="bt bg bs" id="btn-ai-go">Start</button><button class="bt bo bs" data-go="p-home">Back</button></div>
@@ -467,9 +467,9 @@ rS('st-nm','st-w','st-t','st-ct','seat-top',ti,'h');rS('sr-nm','sr-w','sr-t','sr
 const cc=$('cc'),te=$('te'),felt=$('tfelt'),fw=felt.clientWidth,fh=felt.clientHeight;
 if(!G.spinner){cc.innerHTML='';te.style.display='block';}else{te.style.display='none';const laid=layoutChain(G,fw,fh);cc.innerHTML='';laid.forEach(t=>{const d=document.createElement('div');d.style.cssText=`position:absolute;left:${t.x}px;top:${t.y}px;`;d.innerHTML=tsvg(t.a,t.b,t.o,t.o==='v'?t.w:t.h,t.o==='v'?t.h:t.w);cc.appendChild(d);});}
 const hr=$('hrow');hr.innerHTML='';const hand=G.p[bi].h;const myT=G.turn===bi&&!G.go;const pIdx=!G.spinner?hand.map((_,i)=>i):getPlay(hand,G.le,G.re).map(p=>p.i);
-hand.forEach((t,i)=>{const d=document.createElement('div');const ok=myT&&pIdx.includes(i);d.className='til'+(ok?'':' dis');d.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);if(ok){d.addEventListener('touchstart',e=>dragStart(e,i,d),{passive:false});d.addEventListener('mousedown',e=>mouseDragStart(e,i,d));}hr.appendChild(d);});$('hlbl').textContent=G.p[bi].nm+"'s Hand";
+hand.forEach((t,i)=>{const d=document.createElement('div');const ok=myT&&pIdx.includes(i);d.className='til'+(ok?'':' dis');d.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);if(ok){d.addEventListener('pointerdown',e=>pointerStart(e,i,d));}hr.appendChild(d);});$('hlbl').textContent=G.p[bi].nm+"'s Hand";
 }// ═══ DRAG TO PLACE SYSTEM ═══
-let dragIdx=-1,isDragging=false,dragStartY=0,dragStartX=0,dragThreshold=12,draggedEl=null,lastHighlightTs=0;
+let dragIdx=-1,isDragging=false,dragStartY=0,dragStartX=0,dragThreshold=12,draggedEl=null,lastHighlightTs=0,activePointerId=null;
 const dg=$('drag-ghost');
 
 function clearGhosts(){document.querySelectorAll('.ghost').forEach(g=>g.remove());}
@@ -507,27 +507,42 @@ function addGhost(felt,end,x,y,w,h){
   felt.appendChild(g);
 }
 
-function dragStart(e,i,el){
-  e.preventDefault();e.stopPropagation();
+function pointerStart(e,i,el){
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  e.preventDefault();
   const bi=si(0);if(G.turn!==bi||G.go)return;
-  dragIdx=i;isDragging=false;draggedEl=el;
-  const touch=e.touches[0];
-  dragStartY=touch.clientY;dragStartX=touch.clientX;
+  dragIdx=i;isDragging=false;draggedEl=el;activePointerId=e.pointerId;
+  dragStartX=e.clientX;dragStartY=e.clientY;
+  try{el.setPointerCapture(e.pointerId);}catch(_){}
   const t=G.p[bi].h[i];
   dg.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);
-  dg.style.left=(touch.clientX-HAND_W/2)+'px';
-  dg.style.top=(touch.clientY-HAND_H/2)+'px';
-  document.addEventListener('touchmove',dragMove,{passive:false});
-  document.addEventListener('touchend',dragEnd,{passive:false});
-  document.addEventListener('touchcancel',dragEnd,{passive:false});
+  dg.style.left=(e.clientX-HAND_W/2)+'px';
+  dg.style.top=(e.clientY-HAND_H/2)+'px';
+  el.addEventListener('pointermove',pointerMove);
+  el.addEventListener('pointerup',pointerEnd);
+  el.addEventListener('pointercancel',pointerEnd);
+  el.addEventListener('lostpointercapture',pointerEnd);
 }
-function dragMove(e){
+function pointerMove(e){
+  if(e.pointerId!==activePointerId)return;
   e.preventDefault();
-  const touch=e.touches[0];
-  if(!isDragging&&Math.hypot(touch.clientX-dragStartX,touch.clientY-dragStartY)>dragThreshold){
+  if(!isDragging&&Math.hypot(e.clientX-dragStartX,e.clientY-dragStartY)>dragThreshold){
     beginDragVisual();
   }
-  if(isDragging)updateDragVisual(touch.clientX,touch.clientY);
+  if(isDragging)updateDragVisual(e.clientX,e.clientY);
+}
+function pointerEnd(e){
+  if(e.pointerId!==activePointerId)return;
+  const el=draggedEl;
+  if(el){
+    el.removeEventListener('pointermove',pointerMove);
+    el.removeEventListener('pointerup',pointerEnd);
+    el.removeEventListener('pointercancel',pointerEnd);
+    el.removeEventListener('lostpointercapture',pointerEnd);
+    try{el.releasePointerCapture(activePointerId);}catch(_){}
+  }
+  activePointerId=null;
+  finishDrag(e.clientX,e.clientY);
 }
 function beginDragVisual(){
   isDragging=true;
@@ -553,37 +568,6 @@ function updateDragVisual(x,y){
     g.style.opacity=near?'0.8':'0.25';
     g.style.borderColor=near?'var(--gold)':'rgba(255,209,0,.4)';
   });
-}
-function dragEnd(e){
-  if(e.cancelable)e.preventDefault();
-  document.removeEventListener('touchmove',dragMove);
-  document.removeEventListener('touchend',dragEnd);
-  document.removeEventListener('touchcancel',dragEnd);
-  const t=e.changedTouches&&e.changedTouches[0];
-  finishDrag(t?t.clientX:dragStartX,t?t.clientY:dragStartY);
-}
-function mouseDragStart(e,i,el){
-  e.preventDefault();
-  const bi=si(0);if(G.turn!==bi||G.go)return;
-  dragIdx=i;isDragging=false;draggedEl=el;
-  dragStartY=e.clientY;dragStartX=e.clientX;
-  const t=G.p[bi].h[i];
-  dg.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);
-  dg.style.left=(e.clientX-HAND_W/2)+'px';
-  dg.style.top=(e.clientY-HAND_H/2)+'px';
-  document.addEventListener('mousemove',mouseDragMove);
-  document.addEventListener('mouseup',mouseDragEnd);
-}
-function mouseDragMove(e){
-  if(!isDragging&&Math.hypot(e.clientX-dragStartX,e.clientY-dragStartY)>dragThreshold){
-    beginDragVisual();
-  }
-  if(isDragging)updateDragVisual(e.clientX,e.clientY);
-}
-function mouseDragEnd(e){
-  document.removeEventListener('mousemove',mouseDragMove);
-  document.removeEventListener('mouseup',mouseDragEnd);
-  finishDrag(e.clientX,e.clientY);
 }
 function finishDrag(px,py){
   dg.style.display='none';
