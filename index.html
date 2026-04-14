@@ -171,7 +171,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" data-go="p-online">Play with Friends</button>
     <button class="bt bo" id="btn-stats" style="min-width:160px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.6.7</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.6.8</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -333,7 +333,7 @@ function mkG(names,humans){return{p:names.map((n,i)=>({nm:n,h:[],w:0,hu:humans[i
 function deal(G){const s=shuf(mkSet());for(let i=0;i<4;i++)G.p[i].h=s.slice(i*7,i*7+7);G.spinner=null;G.rArm=[];G.lArm=[];G.le=-1;G.re=-1;G.ck=0;G.go=false;}
 function findD6(G){for(let i=0;i<4;i++)for(const t of G.p[i].h)if(t[0]===6&&t[1]===6)return i;return 0;}
 function startMatch(G){for(const p of G.p)p.w=0;G.rn=0;G.fr=true;G.lw=-1;startRound(G);}
-function startRound(G){deal(G);G.rn++;if(G.fr||G.lw<0){const h=findD6(G);G.poser=h;G.turn=h;const hand=G.p[h].h,idx=hand.findIndex(t=>t[0]===6&&t[1]===6);hand.splice(idx,1);G.spinner={a:6,b:6};G.le=6;G.re=6;G.turn=(h+3)%4;}else{G.poser=G.lw;G.turn=G.lw;}}
+function startRound(G){deal(G);G.rn++;if(G.fr||G.lw<0){G.poser=findD6(G);G.turn=G.poser;}else{G.poser=G.lw;G.turn=G.lw;}}
 function canPlay(t,le,re){if(le<0)return true;return t[0]===le||t[1]===le||t[0]===re||t[1]===re;}
 function getPlay(h,le,re){return h.map((t,i)=>({t,i})).filter(({t})=>canPlay(t,le,re));}
 function getEnds(t,le,re){if(le<0)return['first'];const e=new Set();if(t[0]===le||t[1]===le)e.add('left');if(t[0]===re||t[1]===re)e.add('right');return[...e];}
@@ -362,7 +362,7 @@ const AI_DELAY={easy:1800,medium:1200,hard:900};
 function aiMv(G,pi){
   const h=G.p[pi].h,pl=getPlay(h,G.le,G.re);
   if(!G.spinner){
-    // Posing: easy=random, medium/hard=strategic
+    if(G.fr){const d6=h.findIndex(t=>t[0]===6&&t[1]===6);if(d6>=0)return{a:'play',ti:d6,end:'first'};}
     if(aiDiff==='easy'){const pick=pl[0|Math.random()*pl.length];return{a:'play',ti:pick.i,end:'first'};}
     const db=pl.filter(({t})=>isDbl(t));
     const pick=db.length?db.sort((a,b)=>(b.t[0]+b.t[1])-(a.t[0]+a.t[1]))[0]:pl.sort((a,b)=>(b.t[0]+b.t[1])-(a.t[0]+a.t[1]))[0];
@@ -475,14 +475,14 @@ function layArm(arm,tiles,colX,startY,dir,tw,th){
 // ═══ RENDER ═══
 let G=null,viewSeat=0,pendTile=null,gameMode='ai';
 function si(o){return(viewSeat+o)%4;}
-function render(){if(!G)return;const bi=si(0),ri=si(1),ti=si(2),li=si(3);const tb=$('tbar');if(G.go)tb.textContent='';else if(G.turn===bi){if(!G.spinner)tb.textContent='Your turn — pose any tile!';else{tb.textContent=getPlay(G.p[bi].h,G.le,G.re).length?'Your turn — pick a tile':'No plays — tap Knock';}}else tb.textContent=G.p[G.turn].nm+"'s turn...";
+function render(){if(!G)return;const bi=si(0),ri=si(1),ti=si(2),li=si(3);const tb=$('tbar');if(G.go)tb.textContent='';else if(G.turn===bi){if(!G.spinner)tb.textContent=G.fr?'Your turn — pose the double-six!':'Your turn — pose any tile!';else{tb.textContent=getPlay(G.p[bi].h,G.le,G.re).length?'Your turn — pick a tile':'No plays — tap Knock';}}else tb.textContent=G.p[G.turn].nm+"'s turn...";
 function rS(nm,w,t,ct,wr,idx,ori){$(nm).textContent=G.p[idx].nm;$(w).textContent=G.p[idx].w;const el=$(t);el.innerHTML='';const n=G.p[idx].h.length;$(ct).textContent=n+'';for(let i=0;i<n;i++){const d=document.createElement('div');d.innerHTML=bsvg(ori,BACK_W,BACK_H);el.appendChild(d);}$(wr).classList.toggle('seat-glow',G.turn===idx);}
 // Counter-clockwise: right=next, top=across, left=prev
 rS('st-nm','st-w','st-t','st-ct','seat-top',ti,'h');rS('sr-nm','sr-w','sr-t','sr-ct','seat-right',ri,'v');rS('sl-nm','sl-w','sl-t','sl-ct','seat-left',li,'v');
 const cc=$('cc'),te=$('te'),felt=$('tfelt'),fw=felt.clientWidth,fh=felt.clientHeight;
 if(!G.spinner){cc.innerHTML='';te.style.display='block';}else{te.style.display='none';const laid=layoutChain(G,fw,fh);cc.innerHTML='';laid.forEach(t=>{const d=document.createElement('div');d.style.cssText=`position:absolute;left:${t.x}px;top:${t.y}px;`;d.innerHTML=tsvg(t.a,t.b,t.o,t.o==='v'?t.w:t.h,t.o==='v'?t.h:t.w);cc.appendChild(d);});}
-const hr=$('hrow');hr.innerHTML='';const hand=G.p[bi].h;const myT=G.turn===bi&&!G.go;const pIdx=!G.spinner?hand.map((_,i)=>i):getPlay(hand,G.le,G.re).map(p=>p.i);
-hand.forEach((t,i)=>{const d=document.createElement('div');const ok=myT&&pIdx.includes(i);d.className='til'+(ok?'':' dis');d.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);if(ok){d.addEventListener('pointerdown',e=>pointerStart(e,i,d));}hr.appendChild(d);});$('hlbl').textContent=G.p[bi].nm+"'s Hand";
+if(!isDragging){const hr=$('hrow');hr.innerHTML='';const hand=G.p[bi].h;const myT=G.turn===bi&&!G.go;const pIdx=!G.spinner?(G.fr?hand.map((t,i)=>(t[0]===6&&t[1]===6)?i:-1).filter(i=>i>=0):hand.map((_,i)=>i)):getPlay(hand,G.le,G.re).map(p=>p.i);
+hand.forEach((t,i)=>{const d=document.createElement('div');const ok=myT&&pIdx.includes(i);d.className='til'+(ok?'':' dis');d.innerHTML=tsvg(t[0],t[1],'v',HAND_W,HAND_H);if(ok){d.addEventListener('pointerdown',e=>pointerStart(e,i,d));}hr.appendChild(d);});$('hlbl').textContent=G.p[bi].nm+"'s Hand";}
 }// ═══ DRAG TO PLACE SYSTEM ═══
 let dragIdx=-1,isDragging=false,dragStartY=0,dragStartX=0,dragThreshold=12,draggedEl=null,lastHighlightTs=0,activePointerId=null;
 const dg=$('drag-ghost');
@@ -649,20 +649,29 @@ function after(r){
   if(G.spinner&&isBlocked(G)){G.go=true;render();showBlockReveal();return;}
   adv(G);render();sched();if(gameMode==='online')syncGame();
 }
-function sched(){if(G.go)return;if(!G.p[G.turn].hu){const delay=gameMode==='ai'?AI_DELAY[aiDiff]:AI_DELAY['medium'];if(gameMode==='ai'||(gameMode==='online'&&isHost))setTimeout(runAI,delay||1200);}}
+let aiTid=null,aiSchedKey='';
+function sched(){
+  if(!G||G.go||G.p[G.turn].hu){if(aiTid){clearTimeout(aiTid);aiTid=null;}aiSchedKey='';return;}
+  if(gameMode!=='ai'&&!(gameMode==='online'&&isHost))return;
+  const key=G.rn+':'+G.turn;
+  if(aiSchedKey===key&&aiTid)return;
+  if(aiTid)clearTimeout(aiTid);
+  const delay=gameMode==='ai'?AI_DELAY[aiDiff]:AI_DELAY['medium'];
+  aiSchedKey=key;
+  aiTid=setTimeout(()=>{aiTid=null;aiSchedKey='';runAI();},delay||1200);
+}
 function runAI(){
-  if(G.go||G.p[G.turn].hu)return;const pi=G.turn,mv=aiMv(G,pi);
+  if(!G||G.go||G.p[G.turn].hu)return;const pi=G.turn,mv=aiMv(G,pi);
   if(mv.a==='knock'){
     toast(G.p[pi].nm+' knocks');const r=knock(G);
     if(r.type==='blocked'){showBlockReveal();return;}
-    // Check auto-block after knock
     if(isBlocked(G)){G.go=true;render();showBlockReveal();return;}
-    adv(G);render();if(!G.go&&!G.p[G.turn].hu)setTimeout(runAI,AI_DELAY[aiDiff]||1200);
+    adv(G);render();sched();if(gameMode==='online')syncGame();
   }else{
     const r=place(G,pi,mv.ti,mv.end);
     if(r.type==='win'){procWin(r.wi);return;}
     if(isBlocked(G)){G.go=true;render();showBlockReveal();return;}
-    adv(G);render();if(!G.go&&!G.p[G.turn].hu)setTimeout(runAI,AI_DELAY[aiDiff]||1200);
+    adv(G);render();sched();if(gameMode==='online')syncGame();
   }
 }
 // Block reveal: show all hands face up with pip counts
@@ -698,7 +707,7 @@ function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ';let r='';for(let i=0;i<4;i
 function renderLS(seats){document.querySelectorAll('#p-lobby .sp-s').forEach(s=>{const i=+s.dataset.seat;const d=seats?seats[i]:null;if(d){s.classList.add('tk');s.querySelector('.sp-n').textContent=d.name;}else{s.classList.remove('tk');s.querySelector('.sp-n').textContent='Empty';}});const cnt=seats?Object.values(seats).filter(Boolean).length:0;$('lob-status').textContent=cnt+'/4 players';if(isHost&&cnt>=2)$('btn-lob-start').style.display='';else $('btn-lob-start').style.display='none';}
 function fixArrays(G){if(!G)return;for(let i=0;i<4;i++){if(G.p[i].h&&!Array.isArray(G.p[i].h))G.p[i].h=Object.values(G.p[i].h);G.p[i].h=(G.p[i].h||[]).map(t=>Array.isArray(t)?t:Object.values(t));}if(G.rArm&&!Array.isArray(G.rArm))G.rArm=Object.values(G.rArm);if(G.lArm&&!Array.isArray(G.lArm))G.lArm=Object.values(G.lArm);G.rArm=G.rArm||[];G.lArm=G.lArm||[];}
 async function pollLobby(){const room=await fbGet('rooms/'+roomCode);if(!room){toast('Room closed');stopPoll();show('p-home');return;}if(room.status==='playing'&&room.game){stopPoll();G=room.game;fixArrays(G);gameMode='online';viewSeat=mySeat;document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));$('gwrap').classList.add('on');render();startOP();return;}renderLS(room.seats);}
-async function pollGame(){const room=await fbGet('rooms/'+roomCode);if(!room||!room.game)return;G=room.game;fixArrays(G);for(let i=0;i<4;i++){if(G.p[i].h&&!Array.isArray(G.p[i].h))G.p[i].h=Object.values(G.p[i].h);}if(G.rArm&&!Array.isArray(G.rArm))G.rArm=Object.values(G.rArm);if(G.lArm&&!Array.isArray(G.lArm))G.lArm=Object.values(G.lArm);for(let i=0;i<4;i++){G.p[i].h=G.p[i].h.map(t=>Array.isArray(t)?t:Object.values(t));}render();}
+async function pollGame(){const room=await fbGet('rooms/'+roomCode);if(!room||!room.game)return;G=room.game;fixArrays(G);for(let i=0;i<4;i++){if(G.p[i].h&&!Array.isArray(G.p[i].h))G.p[i].h=Object.values(G.p[i].h);}if(G.rArm&&!Array.isArray(G.rArm))G.rArm=Object.values(G.rArm);if(G.lArm&&!Array.isArray(G.lArm))G.lArm=Object.values(G.lArm);for(let i=0;i<4;i++){G.p[i].h=G.p[i].h.map(t=>Array.isArray(t)?t:Object.values(t));}render();sched();}
 function startLP(){stopPoll();pollId=setInterval(pollLobby,1500);}
 function startOP(){stopPoll();pollId=setInterval(pollGame,1200);}
 function stopPoll(){if(pollId){clearInterval(pollId);pollId=null;}}
