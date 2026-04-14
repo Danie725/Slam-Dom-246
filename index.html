@@ -23,7 +23,8 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .hbg::before{content:'';position:absolute;inset:0;background:repeating-conic-gradient(from 0deg,transparent 0 9deg,rgba(255,209,0,.01) 9deg 10deg);animation:sp 180s linear infinite;pointer-events:none;}
 .hbg>*{position:relative;z-index:1;}
 @keyframes sp{to{transform:rotate(360deg)}}
-.tri{font-size:4.5rem;filter:drop-shadow(0 0 24px rgba(255,209,0,.2));animation:fl 4s ease-in-out infinite;}
+.tri{font-size:4.5rem;filter:drop-shadow(0 0 24px rgba(255,215,0,.2));animation:fl 4s ease-in-out infinite;}
+.menu-art{display:block;width:auto;max-width:80%;max-height:34vh;border-radius:18px;border:2px solid rgba(255,215,0,.55);box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 0 1px rgba(255,215,0,.15),inset 0 0 0 1px rgba(0,0,0,.2);margin:8px auto 14px;object-fit:cover;}
 @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .logo{font-family:'Righteous',cursive;font-size:clamp(1.8rem,8vw,3rem);color:var(--gold);text-shadow:0 2px 16px rgba(255,209,0,.2);letter-spacing:2px;text-align:center;line-height:1.15;}
 .lsub{font-size:.7rem;color:rgba(255,255,255,.35);letter-spacing:5px;text-transform:uppercase;margin-bottom:32px;font-weight:700;}
@@ -109,7 +110,19 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 .ghost{position:absolute;opacity:.25;border:3px solid var(--gold);border-radius:6px;background:rgba(255,209,0,.1);z-index:10;transition:opacity .15s,border-color .15s;pointer-events:none;}
 
 /* OVERLAYS */
-.ov{display:none;position:fixed;inset:0;background:rgba(0,6,25,.93);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;flex-direction:column;padding:20px;}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,6,25,.72);backdrop-filter:blur(2px);z-index:200;align-items:center;justify-content:center;flex-direction:column;padding:20px;}
+.ov-panel{background:linear-gradient(150deg,var(--navy),var(--deep));border:2px solid var(--gold);border-radius:20px;padding:22px 24px;box-shadow:0 12px 48px rgba(0,0,0,.6);max-width:360px;width:100%;text-align:center;}
+.ready-list{display:flex;flex-direction:column;gap:6px;margin:14px 0;}
+.ready-item{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;font-size:.82rem;font-weight:700;}
+.ready-item.done{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.08);}
+.ready-item .ri-nm{color:#fff;}
+.ready-item.done .ri-nm{color:var(--gold);}
+.ready-item .ri-st{font-size:.7rem;opacity:.6;}
+.ready-item.done .ri-st{opacity:1;color:var(--gold);}
+.ov.minimized .ov-panel{display:none;}
+.ov.minimized{background:rgba(0,6,25,.3);backdrop-filter:none;pointer-events:none;}
+.ov-analyze-btn{position:fixed;bottom:16px;right:16px;z-index:220;background:linear-gradient(140deg,var(--gold),#E6B800);color:var(--navy);border:none;border-radius:14px;padding:10px 18px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);display:none;pointer-events:auto;}
+.ov.minimized ~ .ov-analyze-btn,body.analyzing .ov-analyze-btn{display:block;}
 .ov.on{display:flex;}
 .ovt{font-family:'Righteous',cursive;font-size:1.4rem;color:var(--gold);margin-bottom:6px;text-align:center;}
 .ovs{opacity:.5;margin-bottom:16px;text-align:center;max-width:300px;line-height:1.4;font-size:.82rem;}
@@ -196,7 +209,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
 
 <!-- HOME -->
 <div class="pnl hbg on" id="p-home">
-  <div class="tri">🔱</div>
+  <img src="menu_art.png" alt="" class="menu-art">
   <div class="logo">ISLAND SLAM</div>
   <div class="lsub">Dominoes Game</div>
   <div class="bst">
@@ -205,7 +218,7 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
     <button class="bt bo" id="btn-rules">📜 Rules</button>
     <button class="bt bo" id="btn-stats" style="min-width:180px;padding:10px 20px;font-size:.82rem;opacity:.7;">📊 Leaderboard</button>
   </div>
-  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.0</span></div>
+  <div class="home-footer">Double-Six &bull; 4 Players &bull; First to 6 Wins<br>Bajan Cut-Throat Rules &bull; Counter-Clockwise<br><span style="opacity:.5;">v1.9.1</span></div>
 </div>
 
 <!-- AI SETUP -->
@@ -377,9 +390,10 @@ body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--wh);heig
   <button class="bt bg" id="btn-block-ok">Continue</button>
 </div>
 
-<div class="ov" id="ov-rnd"><div class="ovt" id="rnd-t"></div><div class="ovs" id="rnd-s"></div><div class="osc" id="rnd-sc"></div><button class="bt bg" id="btn-nxt">Next Round</button></div>
-<div class="ov" id="ov-match"><div class="ovt" id="m-t"></div><div class="ovs" id="m-s"></div><div class="osc" id="m-sc"></div><div class="brow"><button class="bt bg bs" id="btn-re">Play Again</button><button class="bt bo bs" id="btn-mh">End</button></div></div>
-<div class="ov" id="ov-aw"><div class="ovt">⚠️ Full Reset!</div><div class="ovs">All 4 players have a win — game resets.</div><div class="osc" id="aw-sc"></div><div class="brow"><button class="bt bg bs" id="btn-awr">Restart</button><button class="bt bo bs" id="btn-awe">End</button></div></div>
+<div class="ov" id="ov-rnd"><div class="ov-panel"><div class="ovt" id="rnd-t"></div><div class="ovs" id="rnd-s"></div><div class="osc" id="rnd-sc"></div><div class="ready-list" id="rnd-ready"></div><button class="bt bg" id="btn-nxt">Ready Up</button><button class="bt bo bs" id="btn-analyze" style="margin-top:8px;font-size:.72rem;padding:8px 16px;min-width:auto;">🔍 Analyze Board</button></div></div>
+<div class="ov" id="ov-match"><div class="ov-panel"><div class="ovt" id="m-t"></div><div class="ovs" id="m-s"></div><div class="osc" id="m-sc"></div><div class="brow"><button class="bt bg bs" id="btn-re">Play Again</button><button class="bt bo bs" id="btn-mh">End</button></div></div></div>
+<div class="ov" id="ov-aw"><div class="ov-panel"><div class="ovt">⚠️ Full Reset!</div><div class="ovs">All 4 players have a win — game resets.</div><div class="osc" id="aw-sc"></div><div class="brow"><button class="bt bg bs" id="btn-awr">Restart</button><button class="bt bo bs" id="btn-awe">End</button></div></div></div>
+<button class="ov-analyze-btn" id="btn-resume-rnd">Return to Results</button>
 
 <script>
 (function(){
@@ -826,7 +840,10 @@ function showBlockReveal(){
 function procWin(wi){G.go=true;G.p[wi].w++;G.lw=wi;G.fr=false;toast(G.p[wi].nm+' wins!');render();if(gameMode==='online')syncGame();if(allWon(G)){setTimeout(()=>showAW(),600);return;}const mr=chkMatch(G);if(mr.won){setTimeout(()=>showMO(mr.ch),600);return;}setTimeout(()=>showRO(wi,G.p[wi].nm+' dominoed!'),600);}
 function procBlock(){G.go=true;render();if(gameMode==='online')syncGame();const r=resBlock(G);if(r.type==='restart'||r.type==='scratch'){toast('Blocked!');setTimeout(()=>showRO(-1,r.msg),600);return;}if(r.type==='bwin'){G.p[r.wi].w++;G.lw=r.wi;G.fr=false;if(allWon(G)){setTimeout(()=>showAW(),600);return;}const mr=chkMatch(G);if(mr.won){setTimeout(()=>showMO(mr.ch),600);return;}setTimeout(()=>showRO(r.wi,'Blocked! '+G.p[r.wi].nm+' wins with count: '+r.pp),600);return;}setTimeout(()=>showRO(-1,r.msg),600);}
 function scC(el,hl){$(el).innerHTML='';G.p.forEach((p,i)=>{const d=document.createElement('div');d.className='osp'+(i===hl?' w':'');d.innerHTML=`<div class="ospn">${p.nm}</div><div class="ospw">${p.w}</div>`;$(el).appendChild(d);});}
-function showRO(wi,msg){$('rnd-t').textContent=wi>=0?G.p[wi].nm+' Wins!':'Round Over';$('rnd-s').textContent=msg;scC('rnd-sc',wi);$('btn-nxt').textContent=wi<0&&G.fr?'Restart':'Next Round';ovl('ov-rnd',true);}
+function showRO(wi,msg){$('rnd-t').textContent=wi>=0?G.p[wi].nm+' Wins!':'Round Over';$('rnd-s').textContent=msg;scC('rnd-sc',wi);$('btn-nxt').textContent=wi<0&&G.fr?'Restart':'Ready Up';G.ready=[false,false,false,false];if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready',null);renderReadyList();ovl('ov-rnd',true);scheduleAIReady();}
+function renderReadyList(){const el=$('rnd-ready');if(!el||!G)return;el.innerHTML='';const r=G.ready||[false,false,false,false];for(let i=0;i<4;i++){const div=document.createElement('div');div.className='ready-item'+(r[i]?' done':'');div.innerHTML='<span class="ri-nm">'+G.p[i].nm+'</span><span class="ri-st">'+(r[i]?'✓ Ready':'⏳ Waiting')+'</span>';el.appendChild(div);}}
+function scheduleAIReady(){if(!G||!G.ready)return;for(let i=0;i<4;i++){if(!G.p[i].hu&&!G.ready[i]){const idx=i;setTimeout(()=>{if(G&&G.ready&&!G.ready[idx]){G.ready[idx]=true;if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready/'+idx,true);renderReadyList();checkAllReady();}},900+Math.random()*700);}}}
+function checkAllReady(){if(!G||!G.ready)return;if(G.ready.every(r=>r)){if(gameMode==='online'&&!isHost)return;G.ready=null;ovl('ov-rnd',false);document.body.classList.remove('analyzing');if(gameMode==='online'&&isHost)fbSet('rooms/'+roomCode+'/ready',null);startRound(G);begin();if(gameMode==='online')syncGame();}}
 function showMO(ci){$('m-t').textContent='🏆 Champion!';$('m-s').textContent=G.p[ci].nm+' wins with '+G.p[ci].w+' rounds!';$('m-sc').innerHTML='';G.p.forEach((p,i)=>{const d=document.createElement('div');d.className='osp'+(i===ci?' ch':'');d.innerHTML=`<div class="ospn">${p.nm}</div><div class="ospw">${p.w}</div>`;$('m-sc').appendChild(d);});ovl('ov-match',true);}
 function showAW(){scC('aw-sc',-1);ovl('ov-aw',true);}
 function begin(){render();if(gameMode==='ai'){render();if(!G.p[G.turn].hu)setTimeout(runAI,AI_DELAY[aiDiff]||1200);}}
@@ -838,6 +855,8 @@ function renderLS(seats){document.querySelectorAll('#p-lobby .sp-s').forEach(s=>
 function fixArrays(G){if(!G)return;for(let i=0;i<4;i++){if(G.p[i].h&&!Array.isArray(G.p[i].h))G.p[i].h=Object.values(G.p[i].h);G.p[i].h=(G.p[i].h||[]).map(t=>Array.isArray(t)?t:Object.values(t));}if(G.rArm&&!Array.isArray(G.rArm))G.rArm=Object.values(G.rArm);if(G.lArm&&!Array.isArray(G.lArm))G.lArm=Object.values(G.lArm);G.rArm=G.rArm||[];G.lArm=G.lArm||[];}
 async function pollLobby(){const room=await fbGet('rooms/'+roomCode);if(!room){toast('Room closed');stopPoll();show('p-home');return;}if(room.status==='playing'&&room.game){stopPoll();G=room.game;fixArrays(G);gameMode='online';viewSeat=mySeat;document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));$('gwrap').classList.add('on');render();startOP();return;}renderLS(room.seats);}
 async function pollGame(){const room=await fbGet('rooms/'+roomCode);if(!room||!room.game)return;G=room.game;fixArrays(G);for(let i=0;i<4;i++){if(G.p[i].h&&!Array.isArray(G.p[i].h))G.p[i].h=Object.values(G.p[i].h);}if(G.rArm&&!Array.isArray(G.rArm))G.rArm=Object.values(G.rArm);if(G.lArm&&!Array.isArray(G.lArm))G.lArm=Object.values(G.lArm);for(let i=0;i<4;i++){G.p[i].h=G.p[i].h.map(t=>Array.isArray(t)?t:Object.values(t));}
+  // Merge ready flags from room into local G and refresh the ready overlay
+  if(G.go&&$('ov-rnd').classList.contains('on')){const rr=room.ready||{};G.ready=[0,1,2,3].map(i=>!!rr[i]);renderReadyList();checkAllReady();}
   // Host tracks heartbeats — flip hu flag so AI fills in for disconnected humans
   if(isHost&&room.seats){const hb=room.hb||{};const now=Date.now();let changed=false;for(let i=0;i<4;i++){if(!room.seats[i])continue;const last=hb[i]||0;const online=(now-last)<10000;if(G.p[i].hu!==online){G.p[i].hu=online;changed=true;if(!online)toast(G.p[i].nm+' left — AI taking over');else toast(G.p[i].nm+' is back');}}if(changed){syncGame();}}
   render();sched();}
@@ -884,7 +903,17 @@ $('btn-block-ok').addEventListener('click',()=>{
 $('so-left').addEventListener('click',()=>{ovl('m-side',false);if(pendTile===null)return;const r=place(G,si(0),pendTile,'left');pendTile=null;after(r);});
 $('so-right').addEventListener('click',()=>{ovl('m-side',false);if(pendTile===null)return;const r=place(G,si(0),pendTile,'right');pendTile=null;after(r);});
 $('so-cancel').addEventListener('click',()=>{ovl('m-side',false);pendTile=null;});
-$('btn-nxt').addEventListener('click',()=>{ovl('ov-rnd',false);startRound(G);begin();if(gameMode==='online')syncGame();});
+$('btn-nxt').addEventListener('click',()=>{
+  if(!G||!G.ready)return;
+  const bi=si(0);
+  if(G.ready[bi])return;
+  G.ready[bi]=true;
+  if(gameMode==='online')fbSet('rooms/'+roomCode+'/ready/'+bi,true);
+  renderReadyList();
+  checkAllReady();
+});
+$('btn-analyze').addEventListener('click',()=>{document.body.classList.add('analyzing');$('ov-rnd').classList.add('minimized');});
+$('btn-resume-rnd').addEventListener('click',()=>{document.body.classList.remove('analyzing');$('ov-rnd').classList.remove('minimized');});
 $('btn-re').addEventListener('click',()=>{ovl('ov-match',false);startMatch(G);begin();if(gameMode==='online')syncGame();});
 $('btn-mh').addEventListener('click',()=>{ovl('ov-match',false);stopPoll();G=null;$('gwrap').classList.remove('on');show('p-home');});
 $('btn-awr').addEventListener('click',()=>{ovl('ov-aw',false);startMatch(G);begin();if(gameMode==='online')syncGame();});
