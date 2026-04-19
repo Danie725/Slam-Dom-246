@@ -1,4 +1,4 @@
-const CACHE_NAME = 'islandslam-v4';
+const CACHE_NAME = 'islanddom-v14';
 const ASSETS = [
   './',
   './index.html',
